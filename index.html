@@ -8,13 +8,27 @@
     <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f344dd54cd5b4013aad2abf0877167e9"}'></script>
     <!-- End Cloudflare Web Analytics -->
 
-    <script>
-        // क्लाउडफ्लेयर को डेटा रिकॉर्ड करने के लिए 1.5 सेकंड का समय देने के बाद फोटो लोड होगी
-        setTimeout(function() {
-            window.location.href = "photo.jpg";
-        }, 1500);
-    </script>
+    <style>
+        body {
+            background-color: black; 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        img {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+    </style>
 </head>
-<body style="background-color: black; margin: 0; padding: 0;">
+<body>
+
+    <!-- फोटो अब सीधे इसी पेज पर लोड होगी, जिससे क्लाउडफ्लेयर ट्रैक कर पाएगा -->
+    <img src="photo.jpg" alt="Image Viewer">
+
 </body>
 </html>
