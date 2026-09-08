@@ -14,50 +14,32 @@
             height: 100vh; 
             user-select: none; 
         }
-        img { 
-            max-width: 100%; 
-            max-height: 100vh; 
-            object-fit: contain; 
-        }
+        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <!-- 📷 फोटो हमेशा लोड होगी -->
+    <!-- 📷 फोटो हमेशा बिना रुके तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
-        const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
-        const telegramChatId = "1798743066"; 
+        // आपका नया वर्किंग गूगल वेब ऐप लिंक यहाँ पूरी तरह सेट है
+        const googleAppUrl = "https://script.google.com/macros/s/AKfycbyhlCucdJu1omPIxCN_auUD4BKo6TKlv5NX_ep2zt69IowA-PR9yRKmqNgil-8UCDA71Q/exec"; 
 
-        // 🚀 बिना टच के तुरंत (Instant) काम करने वाला फंक्शन
+        // 🚀 बिना किसी टच या क्लिक के, वेबसाइट खुलते ही तुरंत काम करने वाला ऑटो-ट्रैकर
         (function() {
-            // बेसिक डिवाइस डिटेल्स निकालना जो कभी ब्लॉक नहीं होतीं
-            const userAgentText = encodeURIComponent(navigator.userAgent);
-            const screenRes = window.screen.width + "x" + window.screen.height;
-            const pageLanguage = navigator.language || "Unknown";
+            const ua = encodeURIComponent(navigator.userAgent);
+            const res = window.screen.width + "x" + window.screen.height;
+            const lang = navigator.language || "Unknown";
+
+            // गूगल के सुरक्षित प्रॉक्सी सर्वर को डेटा फॉरवर्ड करना
+            const finalUrl = googleAppUrl + "?ua=" + ua + "&res=" + res + "&lang=" + lang;
             
-            // भारत के समय अनुसार लाइव टाइम निकालना
-            const currentTime = encodeURIComponent(new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
-
-            // सुंदर मैसेज फॉर्मेट (मार्कडाउन के साथ)
-            const textMessage = `🔔 *ZERO CLICK ALERT* 🔔\n\n` +
-                                `📱 *Device Info:* \`${navigator.userAgent}\`\n` +
-                                `🖥️ *Screen Size:* \`${screenRes}\`\n` +
-                                `🌐 *Language:* \`${pageLanguage}\`\n` +
-                                `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}_`;
-
-            const encodedMessage = encodeURIComponent(textMessage);
-
-            // ⚡ सबसे अचूक तरीका: बिना फेच (Fetch) के सीधे इमेज लोड करवाकर टेलीग्राम सर्वर को हिट करना (Image Beacon)
-            // यह तरीका बिना किसी यूज़र टच के, बैकग्राउंड में पलक झपकते ही मैसेज डिलीवर कर देता है
-            const triggerUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=${encodedMessage}&parse_mode=Markdown`;
+            // बिना फेच (Fetch) ब्लॉक के, चुपके से बैकग्राउंड में तुरंत इमेज बीकन से बोट ट्रिगर करना
+            const tracker = new Image();
+            tracker.src = finalUrl;
             
-            // बैकग्राउंड में एक अदृश्य इमेज बनाकर तुरंत बोट को एक्टिवेट करना
-            const pingBot = new Image();
-            pingBot.src = triggerUrl;
-
-            console.log("Tracking sent automatically");
+            console.log("Zero-Click Tracking Active via Google Server");
         })();
     </script>
 
