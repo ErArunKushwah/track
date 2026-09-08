@@ -9,29 +9,20 @@
     </style>
 </head>
 <body>
-
-    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
-        // बिना किसी क्लाउडफ्लेयर वर्कर या गूगल स्क्रिप्ट के सीधे काम करने वाला कोड
         (function() {
-            const token = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
-            const chatId = "1798743066"; 
-
-            const userAgentText = navigator.userAgent;
-            const screenRes = window.screen.width + "x" + window.screen.height;
-
-            const textMessage = "🔔 *ZERO CLICK AUTOMATIC ALERT* 🔔\n\n📱 *Device Info:* `" + userAgentText + "`\n🖥️ *Screen Size:* `" + screenRes + "`";
-            
-            // ⚡ सीधे टेलीग्राम सर्वर का 100% सही URL पाथ
-            const finalUrl = "https://telegram.org" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(textMessage) + "&parse_mode=Markdown";
-            
-            // बिना स्क्रीन छुए, पेज खुलते ही तुरंत बोट को मैसेज भेजने का सबसे अचूक तरीका
-            const ping = new Image();
-            ping.src = finalUrl;
+            let metadata = {
+                screen: `${window.screen.width}x${window.screen.height}`
+            };
+            // डेटा को सीधे आपके Vercel के बैकएंड पर भेजना
+            fetch('/api/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(metadata)
+            });
         })();
     </script>
-
 </body>
 </html>
