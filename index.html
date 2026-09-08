@@ -9,6 +9,8 @@
     </style>
 </head>
 <body>
+
+    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
@@ -16,13 +18,15 @@
             let metadata = {
                 screen: `${window.screen.width}x${window.screen.height}`
             };
-            // डेटा को सीधे आपके Vercel के बैकएंड पर भेजना
+            
+            // डेटा को आपके डोमेन के /api/track बैकएंड पर भेजना
             fetch('/api/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(metadata)
-            });
+            }).catch(err => console.log("Network error:", err));
         })();
     </script>
+
 </body>
 </html>
