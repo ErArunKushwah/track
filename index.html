@@ -10,21 +10,27 @@
 </head>
 <body>
 
-    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
         (function() {
             let metadata = {
-                screen: `${window.screen.width}x${window.screen.height}`
+                screen: window.screen.width + "x" + window.screen.height,
+                lang: navigator.language || "Unknown"
             };
             
-            // डेटा को आपके डोमेन के /api/track बैकएंड पर भेजना
+            // यह वर्तमान डोमेन के अनुसार खुद को /api/track पर रूट कर लेगा
             fetch('/api/track', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(metadata)
-            }).catch(err => console.log("Network error:", err));
+            })
+            .then(res => res.json())
+            .then(data => console.log("Success:", data))
+            .catch(err => console.log("Error:", err));
         })();
     </script>
 
