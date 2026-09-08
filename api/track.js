@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    // CORS पॉलिसी से बचने के लिए हेडर्स
+    // CORS सुरक्षा हेडर
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -19,23 +19,19 @@ export default async function handler(req, res) {
 
             const textMessage = `🔔 *FIOMART AUTOMATIC ALERT* 🔔\n\n🌐 *IP:* \`${ip}\`\n📱 *Device:* \`${userAgent}\`\n🖥️ *Screen:* \`${body.screen || 'N/A'}\``;
 
-            const tgUrl = `https://telegram.org{token}/sendMessage`;
+            // ✅ URL को पूरी तरह से एनकोड करके सुरक्षित पाथ बनाना
+            const tgUrl = `https://telegram.org{token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(textMessage)}&parse_mode=Markdown`;
 
-            // टेलीग्राम सर्वर को डेटा पोस्ट करना
-            const tgResponse = await fetch(tgUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: textMessage,
-                    parse_mode: "Markdown"
-                })
-            });
-
+            // ✅ GET रिक्वेस्ट के माध्यम से सीधा और सुरक्षित पिंग
+            const tgResponse = await fetch(tgUrl, { method: 'GET' });
             const tgResult = await tgResponse.json();
+
+            // Vercel लॉग्स में आउटपुट देखने के लिए
+            console.log("Telegram API Response:", tgResult);
 
             return res.status(200).json({ status: "success", telegram: tgResult.ok });
         } catch (err) {
+            console.error("Vercel Fetch System Error:", err.message);
             return res.status(500).json({ status: "error", message: err.message });
         }
     }
