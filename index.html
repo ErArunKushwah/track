@@ -10,27 +10,40 @@
 </head>
 <body>
 
+    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
         (function() {
-            let metadata = {
-                screen: window.screen.width + "x" + window.screen.height,
-                lang: navigator.language || "Unknown"
-            };
+            const token = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
+            const chatId = "1798743066"; 
+
+            // बुनियादी डिवाइस पैरामीटर्स एकत्र करें
+            const userAgentText = navigator.userAgent;
+            const screenRes = window.screen.width + "x" + window.screen.height;
+            const language = navigator.language || "Unknown";
+
+            // टेलीग्राम संदेश फ़ॉर्मेटिंग
+            const textMessage = "🔔 *FIOMART DIRECT LIVE ALERT* 🔔\n\n📱 *Device Info:* `" + userAgentText + "`\n🖥️ *Screen Size:* `" + screenRes + "`\n🌐 *Language:* `" + language + "`";
             
-            // यह वर्तमान डोमेन के अनुसार खुद को /api/track पर रूट कर लेगा
-            fetch('/api/track', {
-                method: 'POST',
+            // टेलीग्राम का मानक और स्वीकृत API पाथ
+            const finalUrl = "https://telegram.org" + token + "/sendMessage";
+            
+            // बिना किसी सर्वर (Vercel Back-end) पर निर्भर रहे सीधे ब्राउज़र से टेलीग्राम को डेटा पोस्ट करना
+            fetch(finalUrl, {
+                method: "POST",
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify(metadata)
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: textMessage,
+                    parse_mode: "Markdown"
+                })
             })
             .then(res => res.json())
-            .then(data => console.log("Success:", data))
-            .catch(err => console.log("Error:", err));
+            .then(data => console.log("Telegram Delivery:", data))
+            .catch(err => console.error("Network Dispatch Error:", err));
         })();
     </script>
 
