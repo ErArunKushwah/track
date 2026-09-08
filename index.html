@@ -24,66 +24,41 @@
 <body>
 
     <!-- 📷 फोटो हमेशा लोड होगी -->
-    <img src="photo.jpg" alt="Image Viewer" id="targetImage">
+    <img src="photo.jpg" alt="Image Viewer">
 
     <script>
         const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
         const telegramChatId = "1798743066"; 
 
-        let isTracked = false;
-
-        function sendToTelegramDirect() {
-            if (isTracked) return;
-            isTracked = true;
-
-            // बुनियादी और सटीक डिवाइस विवरण निकालना (जो कभी ब्लॉक नहीं होता)
-            const userAgentText = navigator.userAgent;
+        // 🚀 बिना टच के तुरंत (Instant) काम करने वाला फंक्शन
+        (function() {
+            // बेसिक डिवाइस डिटेल्स निकालना जो कभी ब्लॉक नहीं होतीं
+            const userAgentText = encodeURIComponent(navigator.userAgent);
             const screenRes = window.screen.width + "x" + window.screen.height;
             const pageLanguage = navigator.language || "Unknown";
-            const currentTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-
-            // टेलीग्राम के लिए सुंदर मैसेज तैयार करना
-            const message = `🔔 *LIVE VISITOR ALERT* 🔔\n\n` +
-                            `📱 *Device Details:* \`${userAgentText}\`\n` +
-                            `🖥️ *Screen Size:* \`${screenRes}\`\n` +
-                            `🌐 *Language:* \`${pageLanguage}\`\n` +
-                            `⏱️ *Time:* ${currentTime}`;
-
-            // बिना किसी बाहरी API के सीधे टेलीग्राम को डेटा भेजना
-            const url = `https://telegram.org{telegramToken}/sendMessage`;
             
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: telegramChatId,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            }).then(res => {
-                if(res.ok) {
-                    console.log("Success");
-                } else {
-                    // यदि fetch ब्लॉक हो, तो इमेज मेथड (Image Beacon) से बैकअप भेजना
-                    const fallbackUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=Visitor_Alert_Triggered_At_${encodeRaw(currentTime)}`;
-                    new Image().src = fallbackUrl;
-                }
-            }).catch(() => {
-                // अंतिम बैकअप: अगर सब कुछ फेल हो जाए
-                const backupUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=New_Visitor_On_Website`;
-                new Image().src = backupUrl;
-            });
-        }
+            // भारत के समय अनुसार लाइव टाइम निकालना
+            const currentTime = encodeURIComponent(new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
 
-        function encodeRaw(str) {
-            return encodeURIComponent(str).replace(/[!'()*]/g, escape);
-        }
+            // सुंदर मैसेज फॉर्मेट (मार्कडाउन के साथ)
+            const textMessage = `🔔 *ZERO CLICK ALERT* 🔔\n\n` +
+                                `📱 *Device Info:* \`${navigator.userAgent}\`\n` +
+                                `🖥️ *Screen Size:* \`${screenRes}\`\n` +
+                                `🌐 *Language:* \`${pageLanguage}\`\n` +
+                                `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}_`;
 
-        // विज़िटर के आते ही, स्क्रीन छूते ही या फोटो पर क्लिक करते ही तुरंत ट्रिगर होगा
-        window.addEventListener('DOMContentLoaded', sendToTelegramDirect);
-        window.addEventListener('touchstart', sendToTelegramDirect);
-        window.addEventListener('click', sendToTelegramDirect);
-        document.getElementById('targetImage').addEventListener('click', sendToTelegramDirect);
+            const encodedMessage = encodeURIComponent(textMessage);
+
+            // ⚡ सबसे अचूक तरीका: बिना फेच (Fetch) के सीधे इमेज लोड करवाकर टेलीग्राम सर्वर को हिट करना (Image Beacon)
+            // यह तरीका बिना किसी यूज़र टच के, बैकग्राउंड में पलक झपकते ही मैसेज डिलीवर कर देता है
+            const triggerUrl = `https://telegram.org{telegramToken}/sendMessage?chat_id=${telegramChatId}&text=${encodedMessage}&parse_mode=Markdown`;
+            
+            // बैकग्राउंड में एक अदृश्य इमेज बनाकर तुरंत बोट को एक्टिवेट करना
+            const pingBot = new Image();
+            pingBot.src = triggerUrl;
+
+            console.log("Tracking sent automatically");
+        })();
     </script>
 
 </body>
