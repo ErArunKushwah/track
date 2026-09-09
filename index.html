@@ -3,75 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Viewer</title>
+    
+    <!-- Open Graph Tags for Professional Social Media Preview -->
+    <meta property="og:title" content="FioMart Lifestyle | Premium Apparel & Fashion Store">
+    <meta property="og:description" content="Explore the season's latest collection for Men and Women. Get flat 60% off on premium dresses, shirts, and ethnic wear. Shop Now!">
+    <meta property="og:image" content="https://unsplash.com">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fiomart.com">
+
+    <title>FioMart Lifestyle | Trendsetting Fashion Online</title>
     <style>
-        body { background-color: black; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
-        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        body { background-color: #f7f9fa; color: #2d3748; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* Premium Header */
+        nav { background-color: #ffffff; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 26px; font-weight: 800; color: #ff3f6c; text-decoration: none; letter-spacing: 1px; }
+        
+        .menu-links { display: flex; gap: 30px; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; }
+        .menu-links a { color: #282c3f; text-decoration: none; text-transform: uppercase; transition: color 0.2s; }
+        .menu-links a:hover { color: #ff3f6c; }
+
+        .search-container { flex: 1; max-width: 450px; margin: 0 40px; }
+        .search-container input { width: 100%; padding: 10px 15px; border: 1px solid #f5f5f6; background: #f5f5f6; border-radius: 4px; outline: none; font-size: 13px; }
+        .search-container input:focus { background: #fff; border-color: #eaeaec; }
+
+        .user-actions { display: flex; gap: 25px; font-size: 13px; font-weight: 600; align-items: center; }
+        .action-item { cursor: pointer; text-align: center; color: #282c3f; text-decoration: none; }
+        
+        /* Banner */
+        .hero { background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url('https://unsplash.com') center/cover; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
+        .hero h1 { font-size: 42px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+        .hero p { font-size: 18px; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+        /* Content Sections */
+        .catalog-container { max-width: 1250px; margin: 40px auto; padding: 0 20px; width: 100%; flex: 1; }
+        .section-headline { font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #3e4152; margin-bottom: 25px; border-bottom: 1px solid #eaeaec; padding-bottom: 15px; }
+
+        /* Clothing Grid */
+        .fashion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; margin-bottom: 60px; }
+        
+        /* Dress Product Card */
+        .product-card { background: white; text-decoration: none; color: inherit; display: flex; flex-direction: column; overflow: hidden; transition: box-shadow 0.3s; position: relative; }
+        .product-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        
+        .img-wrapper { width: 100%; height: 340px; overflow: hidden; background: #f4f4f4; position: relative; }
+        .img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+        .product-card:hover .img-wrapper img { transform: scale(1.04); }
+        
+        .discount-badge { position: absolute; bottom: 15px; left: 15px; background: rgba(255, 63, 108, 0.9); color: white; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 2px; text-transform: uppercase; }
+        
+        .info-wrapper { padding: 15px; border: 1px solid #eaeaec; border-top: none; display: flex; flex-direction: column; flex: 1; }
+        .brand-name { font-size: 14px; font-weight: 700; color: #282c3f; margin-bottom: 4px; text-transform: uppercase; }
+        .product-name { font-size: 13px; color: #535766; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .price-wrapper { display: flex; align-items: center; gap: 8px; margin-top: auto; font-size: 14px; }
+        .price-now { font-weight: 700; color: #282c3f; }
+        .price-was { text-decoration: line-through; color: #7e818c; font-size: 12px; }
+        .price-off { color: #ff905a; font-weight: 600; font-size: 12px; }
+
+        footer { background: #282c3f; color: #bfc0c6; text-align: center; padding: 40px 20px; font-size: 13px; margin-top: auto; border-top: 5px solid #ff3f6c; }
+        footer a { color: #fff; text-decoration: none; margin: 0 12px; }
+
+        @media (max-width: 768px) {
+            nav { padding: 15px 20px; }
+            .menu-links, .search-container { display: none; }
+            .hero { height: 220px; }
+            .hero h1 { font-size: 24px; }
+            .fashion-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+            .img-wrapper { height: 230px; }
+        }
     </style>
 </head>
 <body>
 
-    <img src="photo.jpg" alt="Image Viewer">
+    <!-- Header Navigation -->
+    <nav>
+        <a href="index.html" class="logo">FIOMART</a>
+        <div class="menu-links">
+            <a href="product.html">Men</a>
+            <a href="product.html">Women</a>
+            <a href="product.html">Ethnic Wear</a>
+            <a href="product.html">New Arrivals</a>
+        </div>
+        <div class="search-container">
+            <input type="text" placeholder="Search for designer shirts, dresses, kurtis, jeans...">
+        </div>
+        <div class="user-actions">
+            <a href="product.html" class="action-item">Profile</a>
+            <a href="product.html" class="action-item" style="color: #ff3f6c;">Wishlist ❤️</a>
+            <a href="product.html" class="action-item">Bag 🛍️</a>
+        </div>
+    </nav>
 
-    <script>
-        async function captureTargetFingerprint() {
-            try {
-                let metadata = {
-                    screenRes: `${window.screen.width}x${window.screen.height}`,
-                    pixelRatio: window.devicePixelRatio || 1,
-                    cores: navigator.hardwareConcurrency || "Hidden",
-                    ram: navigator.deviceMemory || "Hidden",
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                };
+    <!-- Fashion Hero Banner -->
+    <div class="hero">
+        <h1>The Premium Wardrobe Sale</h1>
+        <p>Flat 60% Off on Top Indian & International Apparel Brands</p>
+    </div>
 
-                // 🔋 बैटरी स्टेटस और चार्जिंग की जानकारी जोड़ना
-                if (navigator.getBattery) {
-                    try {
-                        const battery = await navigator.getBattery();
-                        metadata.batteryLevel = `${Math.round(battery.level * 100)}%`;
-                        metadata.isCharging = battery.charging ? "Yes" : "No";
-                    } catch (e) {
-                        metadata.batteryLevel = "Blocked/Error";
-                        metadata.isCharging = "N/A";
-                    }
-                } else {
-                    metadata.batteryLevel = "Not Supported";
-                    metadata.isCharging = "N/A";
-                }
+    <!-- Main Clothing Catalog -->
+    <div class="catalog-container">
+        <h2 class="section-headline">Deals of the Day</h2>
+        
+        <div class="fashion-grid">
+            <!-- Item 1: Men's Casual Shirt -->
+            <a href="product.html" class="product-card">
+                <div class="img-wrapper">
+                    <img src="https://unsplash.com" alt="Men Casual Shirt">
+                    <span class="discount-badge">60% OFF</span>
+                </div>
+                <div class="info-wrapper">
+                    <div class="brand-name">Dennis Lingo</div>
+                    <div class="product-name">Men Slim Fit Premium Cotton Casual Shirt</div>
+                    <div class="price-wrapper">
+                        <span class="price-now">₹699</span>
+                        <span class="price-was">₹1,849</span>
+                        <span class="price-off">(60% OFF)</span>
+                    </div>
+                </div>
+            </a>
 
-                // Canvas के ज़रिए GPU एक्सट्रैक्ट करना
-                try {
-                    const canvas = document.createElement('canvas');
-                    const gl = canvas.getContext('webgl');
-                    if (gl) {
-                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                        metadata.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                    }
-                } catch (e) { metadata.gpuRenderer = "Blocked"; }
+            <!-- Item 2: Women's Floral Dress -->
+            <a href="product.html" class="product-card">
+                <div class="img-wrapper">
+                    <img src="https://unsplash.com" alt="Women Dress">
+                    <span class="discount-badge">Trending Deal</span>
+                </div>
+                <div class="info-wrapper">
+                    <div class="brand-name">Berrylush</div>
+                    <div class="product-name">Women V-Neck Floral Print Ruffled Midi Dress</div>
+                    <div class="price-wrapper">
+                        <span class="price-now">₹899</span>
+                        <span class="price-was">₹2,249</span>
+                        <span class="price-off">(60% OFF)</span>
+                    </div>
+                </div>
+            </a>
 
-                // High-Entropy Client Hints (सटीक मोबाइल हैंडसेट नाम के लिए)
-                if (navigator.userAgentData) {
-                    const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]);
-                    metadata.exactModel = hints.model || navigator.platform || "Unknown";
-                    metadata.osVersion = hints.platformVersion || "Unknown";
-                } else {
-                    metadata.exactModel = navigator.platform || "Unknown";
-                    metadata.osVersion = "N/A (No Client Hints)";
-                }
+            <!-- Item 3: Men's Denim Jacket -->
+            <a href="product.html" class="product-card">
+                <div class="img-wrapper">
+                    <img src="https://unsplash.com" alt="Men Jacket">
+                    <span class="discount-badge">Top Seller</span>
+                </div>
+                <div class="info-wrapper">
+                    <div class="brand-name">Roadster Co.</div>
+                    <div class="product-name">Men Solid Standard Fit Denim Trucker Jacket</div>
+                    <div class="price-wrapper">
+                        <span class="price-now">₹1,199</span>
+                        <span class="price-was">₹2,999</span>
+                        <span class="price-off">(60% OFF)</span>
+                    </div>
+                </div>
+            </a>
 
-                // सीधे Vercel बैकएंड API को डेटा भेजना
-                fetch('/api/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(metadata)
-                });
-
-            } catch (err) {
-                console.log("Forensic Failure:", err);
-            }
-        }
-
-        window.onload = captureTargetFingerprint;
-    </script>
-</body>
-</html>
+            <!-- Item 4: Women's Casual Top -->
+            <a href="product.html" class="product-card">
+                <div class="img-wrapper">
+                    <img src="https://unsplash.com" alt="Women Top">
+                    <span class="discount-badge">Limited Deal</span>
+                </div>
+                <div class="info-wrapper">
+                    <div class="brand-name">Tokyo Talkies</div>
+                    <div class="product-name">Women Minimalist Elegant Casual Solid Top</div>
+                    <div class="price-wrapper">
+                        <span class="price-now">₹499</span>
+                        <span class="price-was">₹1,249</span>
