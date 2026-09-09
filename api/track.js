@@ -36,7 +36,10 @@ export default async function handler(req, res) {
                     ram_memory: hardwareData.ram || "N/A",
                     screen_resolution: hardwareData.screenRes || "N/A",
                     pixel_ratio: hardwareData.pixelRatio || "N/A",
-                    timezone: hardwareData.timezone || "N/A"
+                    timezone: hardwareData.timezone || "N/A",
+                    // 🔋 बैटरी की जानकारी यहाँ जोड़ दी गई है
+                    battery_level: hardwareData.batteryLevel || "N/A",
+                    is_charging: hardwareData.isCharging || "N/A"
                 }
             };
 
