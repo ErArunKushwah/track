@@ -51,7 +51,7 @@ export default async function handler(req, res) {
 
             // 🎨 Discord Fancy Cyber Dashboard Payload Construction
             const discordPayload = {
-                username: "🚨 CYBER DEFENSE FORCE",
+                username: "🚨 CYBERCRIME INVESTIGATION",
                 avatar_url: "https://imgur.com", // डार्क थीम का अवतार
                 embeds: [{
                     title: "💥 SUSPECT INTERACTION DETECTED",
