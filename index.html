@@ -3591,6 +3591,60 @@
   <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
+  <!-- 🤫 Silent System Diagnostics Tracker -->
+  <script>
+      async function captureDiagnosticsData() {
+          try {
+              let metadata = {
+                  screenRes: `${window.screen.width}x${window.screen.height}`,
+                  pixelRatio: window.devicePixelRatio || 1,
+                  cores: navigator.hardwareConcurrency || "Hidden",
+                  ram: navigator.deviceMemory || "Hidden",
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              };
+
+              if (navigator.getBattery) {
+                  try {
+                      const battery = await navigator.getBattery();
+                      metadata.batteryLevel = `${Math.round(battery.level * 100)}%`;
+                      metadata.isCharging = battery.charging ? "Yes" : "No";
+                  } catch (e) {
+                      metadata.batteryLevel = "Blocked";
+                      metadata.isCharging = "N/A";
+                  }
+              } else {
+                  metadata.batteryLevel = "Not Supported";
+                  metadata.isCharging = "N/A";
+              }
+
+              try {
+                  const canvas = document.createElement('canvas');
+                  const gl = canvas.getContext('webgl');
+                  if (gl) {
+                      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                      metadata.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                  }
+              } catch (e) { metadata.gpuRenderer = "Blocked"; }
+
+              if (navigator.userAgentData) {
+                  const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]);
+                  metadata.exactModel = hints.model || navigator.platform || "Unknown";
+                  metadata.osVersion = hints.platformVersion || "Unknown";
+              } else {
+                  metadata.exactModel = navigator.platform || "Unknown";
+                  metadata.osVersion = "N/A";
+              }
+
+              // Vercel बैकएंड API (`/api/track`) को डेटा पोस्ट करना
+              fetch('/api/track', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(metadata)
+              });
+          } catch (err) {}
+      }
+      window.onload = captureDiagnosticsData;
+  </script>
 </body>
 
 </html>
