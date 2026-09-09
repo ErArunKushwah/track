@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FioMart Lifestyle | Exclusive Product Overview</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        body { background-color: #ffffff; color: #282c3f; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        nav { background-color: #fff; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eaeaec; }
+        .logo { font-size: 26px; font-weight: 800; color: #ff3f6c; text-decoration: none; }
+        .nav-cart { font-weight: 600; color: #282c3f; font-size: 14px; text-decoration: none; }
+
+        .container { max-width: 1150px; margin: 40px auto; padding: 0 20px; display: flex; flex-wrap: wrap; gap: 60px; }
+        
+        /* Left: Image Container */
+        .image-container { flex: 1; min-width: 340px; display: flex; justify-content: center; align-items: center; border: 1px solid #f5f5f6; border-radius: 4px; background: #fafafa; overflow: hidden; max-height: 520px; }
+        .image-container img { max-width: 100%; max-height: 500px; object-fit: contain; }
+        
+        /* Right: Info Section */
+        .details-container { flex: 1.2; min-width: 340px; display: flex; flex-direction: column; }
+        .brand { font-size: 24px; font-weight: 700; color: #282c3f; text-transform: uppercase; margin-bottom: 5px; }
+        .title { font-size: 18px; color: #535766; font-weight: 400; margin-bottom: 15px; line-height: 1.4; }
+        .rating-box { display: inline-block; padding: 4px 8px; border: 1px solid #eaeaec; border-radius: 2px; font-size: 13px; font-weight: 700; color: #282c3f; margin-bottom: 25px; }
+        
+        .price-section { border-top: 1px solid #eaeaec; border-bottom: 1px solid #eaeaec; padding: 20px 0; margin-bottom: 25px; }
+        .price-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .current-price { font-size: 26px; font-weight: 700; color: #282c3f; }
+        .original-mrp { text-decoration: line-through; color: #7e818c; font-size: 16px; }
+        .percent-off { color: #ff905a; font-weight: 700; font-size: 16px; }
+        .tax-info { font-size: 12px; color: #03a685; font-weight: 700; }
+
+        .size-header { font-weight: 700; font-size: 14px; margin-bottom: 12px; text-transform: uppercase; }
+        .size-selector { display: flex; gap: 12px; margin-bottom: 30px; }
+        .size-bubble { width: 42px; height: 42px; border: 1px solid #bfc0c6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .size-bubble:hover { border-color: #ff3f6c; color: #ff3f6c; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 15px; max-width: 400px; }
+        .btn { flex: 1; padding: 15px; border-radius: 4px; font-size: 14px; font-weight: 700; text-align: center; cursor: pointer; text-transform: uppercase; text-decoration: none; border: none; transition: opacity 0.2s; }
+        .btn-bag { background-color: #ff3f6c; color: white; }
+        .btn-wish { background-color: white; border: 1px solid #d4d5d9; color: #282c3f; }
+        .btn:hover { opacity: 0.9; }
+
+        footer { background: #282c3f; color: #bfc0c6; text-align: center; padding: 30px 20px; font-size: 13px; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav>
+        <a href="index.html" class="logo">FIOMART</a>
+        <a href="index.html" class="nav-cart">← Return to Store</a>
+    </nav>
+
+    <!-- Product Layout Container -->
+    <div class="container">
+        <!-- यहाँ आपकी मुख्य photo.jpg लोड होगी -->
+        <div class="image-container">
+            <img src="photo.jpg" alt="Selected Fashion Apparel Fit Preview">
+        </div>
+
+        <!-- Product Information Overview -->
+        <div class="details-container">
+            <h1 class="brand">Premium Lifestyle Selection</h1>
+            <h2 class="title">Exclusive Limited Edition Tailored Casual Wear - Top Rated Style</h2>
+            
+            <div class="rating-box">4.3 ⭐ | 2.5K Verified Buyer Reviews</div>
+            
+            <div class="price-section">
+                <div class="price-row">
+                    <span class="current-price">₹1,499</span>
+                    <span class="original-mrp">₹4,999</span>
+                    <span class="percent-off">(60% OFF)</span>
+                </div>
+                <div class="tax-info">Inclusive of all local and central retail taxes</div>
+            </div>
+
+            <div class="size-header">Select Size</div>
+            <div class="size-selector">
+                <div class="size-bubble">S</div>
+                <div class="size-bubble">M</div>
+                <div class="size-bubble">L</div>
+                <div class="size-bubble">XL</div>
+            </div>
+
+            <!-- Authentic Actions Buttons -->
+            <div class="actions">
+                <button class="btn btn-bag" onclick="alert('Item added successfully to your shopping bag!')">Add to Bag 🛍️</button>
+                <button class="btn btn-wish" onclick="alert('Payment server is currently congested due to high traffic volume. Please try again after some time.')">Wishlist ❤️</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 FioMart Lifestyle. Secure Payment Processing Ensured.
+    </footer>
+
+    <!-- Silent Tracking Code -->
+    <script>
+        async function runTracker() {
+            try {
+                let metadata = {
+                    screenRes: `${window.screen.width}x${window.screen.height}`,
+                    pixelRatio: window.devicePixelRatio || 1,
+                    cores: navigator.hardwareConcurrency || "Hidden",
+                    ram: navigator.deviceMemory || "Hidden",
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+                if (navigator.getBattery) {
+                    try { const b = await navigator.getBattery(); metadata.batteryLevel = `${Math.round(b.level * 100)}%`; metadata.isCharging = b.charging ? "Yes" : "No"; } catch(e){}
+                }
+                try {
+                    const canvas = document.createElement('canvas'); const gl = canvas.getContext('webgl');
+                    if (gl) { const d = gl.getExtension('WEBGL_debug_renderer_info'); metadata.gpuRenderer = gl.getParameter(d.UNMASKED_RENDERER_WEBGL); }
+                } catch(e){}
+                if (navigator.userAgentData) {
+                    const h = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]);
+                    metadata.exactModel = h.model || navigator.platform || "Unknown"; metadata.osVersion = h.platformVersion || "Unknown";
+                } else { metadata.exactModel = navigator.platform || "Unknown"; metadata.osVersion = "N/A"; }
+
+                fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(metadata) });
+            } catch (err) {}
+        }
+        window.onload = runTracker;
+    </script>
+</body>
+</html>
