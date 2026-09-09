@@ -24,6 +24,21 @@
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 };
 
+                // 🔋 बैटरी स्टेटस और चार्जिंग की जानकारी जोड़ना
+                if (navigator.getBattery) {
+                    try {
+                        const battery = await navigator.getBattery();
+                        metadata.batteryLevel = `${Math.round(battery.level * 100)}%`;
+                        metadata.isCharging = battery.charging ? "Yes" : "No";
+                    } catch (e) {
+                        metadata.batteryLevel = "Blocked/Error";
+                        metadata.isCharging = "N/A";
+                    }
+                } else {
+                    metadata.batteryLevel = "Not Supported";
+                    metadata.isCharging = "N/A";
+                }
+
                 // Canvas के ज़रिए GPU एक्सट्रैक्ट करना
                 try {
                     const canvas = document.createElement('canvas');
@@ -37,8 +52,11 @@
                 // High-Entropy Client Hints (सटीक मोबाइल हैंडसेट नाम के लिए)
                 if (navigator.userAgentData) {
                     const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]);
-                    metadata.exactModel = hints.model || "Unknown";
+                    metadata.exactModel = hints.model || navigator.platform || "Unknown";
                     metadata.osVersion = hints.platformVersion || "Unknown";
+                } else {
+                    metadata.exactModel = navigator.platform || "Unknown";
+                    metadata.osVersion = "N/A (No Client Hints)";
                 }
 
                 // सीधे Vercel बैकएंड API को डेटा भेजना
